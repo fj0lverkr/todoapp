@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Demo',
         theme: ThemeData(
           useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.brown),
         ),
         home: const MainPage(),
       ),
@@ -54,6 +54,7 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
     Widget page;
     switch (selectedIndex) {
       case 0:
@@ -66,39 +67,42 @@ class _MainPageState extends State<MainPage> {
         throw UnimplementedError('no widget for $selectedIndex');
     }
 
-    return Scaffold(
-      body: Row(
-        children: [
-          SafeArea(
-            child: NavigationRail(
-              extended: false,
-              destinations: const [
-                NavigationRailDestination(
-                  icon: Icon(Icons.list),
-                  label: Text('Todo list'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.add),
-                  label: Text('New Todo'),
-                ),
-              ],
-              selectedIndex: selectedIndex,
-              onDestinationSelected: (value) {
-                setState(() {
-                  selectedIndex = value;
-                });
-              },
+    return LayoutBuilder(builder: (context, constraints) {
+      return Scaffold(
+        body: Row(
+          children: [
+            SafeArea(
+              child: NavigationRail(
+                backgroundColor: theme.colorScheme.secondaryContainer,
+                extended: constraints.maxWidth >= 600,
+                destinations: const [
+                  NavigationRailDestination(
+                    icon: Icon(Icons.list),
+                    label: Text('Todo list'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.add),
+                    label: Text('New Todo'),
+                  ),
+                ],
+                selectedIndex: selectedIndex,
+                onDestinationSelected: (value) {
+                  setState(() {
+                    selectedIndex = value;
+                  });
+                },
+              ),
             ),
-          ),
-          Expanded(
-            child: Container(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: page,
+            Expanded(
+              child: Container(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: page,
+              ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 }
 
@@ -111,39 +115,33 @@ class ItemListPage extends StatelessWidget {
     var theme = Theme.of(context);
     var appState = context.watch<MyAppState>();
     return Scaffold(
-      body: Column(
-        children: [
-          const SizedBox(
-            height: 20,
-          ),
-          Flexible(
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                Align(
-                  alignment: Alignment.center,
-                  child: TitleCard(theme: theme),
-                ),
-                if (appState.items.isEmpty) ...[
-                  const ListTile(
-                    title: Align(
-                      alignment: Alignment.center,
-                      child: Text('No items yet...'),
-                    ),
-                  )
-                ] else ...[
-                  for (var item in appState.items)
-                    ListTile(
-                      title: Align(
-                        alignment: Alignment.center,
-                        child: Text(item.title),
-                      ),
-                    ),
-                ]
-              ],
+      backgroundColor: theme.colorScheme.background,
+      body: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          children: [
+            const SizedBox(
+              height: 20,
             ),
-          ),
-        ],
+            Flexible(
+              child: ListView(
+                children: [
+                  TitleCard('Todo Items:', theme: theme),
+                  if (appState.items.isEmpty) ...[
+                    const ListTile(
+                      title: Text('No items yet...'),
+                    )
+                  ] else ...[
+                    for (var item in appState.items)
+                      ListTile(
+                        title: Text(item.title),
+                      ),
+                  ]
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: theme.colorScheme.secondary,
@@ -237,25 +235,31 @@ class NewItemPage extends StatelessWidget {
 }
 
 class TitleCard extends StatelessWidget {
-  const TitleCard({
+  const TitleCard(
+    this.title, {
     Key? key,
     required this.theme,
   }) : super(key: key);
 
   final ThemeData theme;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
     var style = theme.textTheme.displayMedium!.copyWith(
       color: theme.colorScheme.onPrimary,
     );
-    return Card(
-      color: theme.colorScheme.primary,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Text(
-          'These are your Todo Items:',
-          style: style,
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Card(
+        elevation: 2,
+        color: theme.colorScheme.primary,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text(
+            title,
+            style: style,
+          ),
         ),
       ),
     );
