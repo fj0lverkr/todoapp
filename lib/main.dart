@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 import 'model/item.dart';
 
@@ -95,7 +96,7 @@ class _MainPageState extends State<MainPage> {
             ),
             Expanded(
               child: Container(
-                color: Theme.of(context).colorScheme.primaryContainer,
+                color: theme.colorScheme.primaryContainer,
                 child: page,
               ),
             ),
@@ -162,75 +163,135 @@ class NewItemPage extends StatelessWidget {
   final Function _setIndex;
   final _formKey = GlobalKey<FormState>();
   NewItemPage(this._setIndex, {super.key});
+  DateTime _selectedDate = DateTime.now();
+  final TextEditingController _textEditingController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    return Form(
-      key: _formKey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: TextFormField(
-              validator: (String? value) {
-                return (value == null || value.isEmpty)
-                    ? 'Please provide a title.'
-                    : null;
-              },
-              decoration: const InputDecoration(
-                labelText: 'Title*',
-                icon: Icon(Icons.title),
-                hintText: 'Enter a title for your item.',
+    var theme = Theme.of(context);
+
+    return Container(
+      color: theme.colorScheme.background,
+      child: Padding(
+        padding: const EdgeInsets.all(30.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: TextFormField(
+                  validator: (String? value) {
+                    return (value == null || value.isEmpty)
+                        ? 'Please provide a title.'
+                        : null;
+                  },
+                  decoration: const InputDecoration(
+                      labelText: 'Title*',
+                      icon: Icon(Icons.title),
+                      hintText: 'Enter a title for your item.'),
+                  onSaved: (value) => appState.myItem = TodoItem(value!),
+                ),
               ),
-              onSaved: (value) => appState.myItem = TodoItem(value!),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: TextFormField(
-              onSaved: (newValue) => appState.myItem.description = newValue,
-              keyboardType: TextInputType.multiline,
-              minLines: 1,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                  labelText: 'Description',
-                  icon: Icon(Icons.description),
-                  hintText: 'Enter a description for your item.'),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  child: const Text("Save"),
-                  onPressed: () {
-                    if (_formKey.currentState != null &&
-                        _formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-                      appState.storeItem();
-                      _setIndex(0);
-                    }
+              Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: TextFormField(
+                  onSaved: (newValue) => appState.myItem.description = newValue,
+                  keyboardType: TextInputType.multiline,
+                  minLines: 1,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                      labelText: 'Description',
+                      icon: Icon(Icons.description),
+                      hintText: 'Enter a description for your item.'),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: TextFormField(
+                  keyboardType: TextInputType.datetime,
+                  //enabled: false,
+                  onTap: () {
+                    _selectDate(context);
                   },
+                  decoration: const InputDecoration(
+                      labelText: 'Expires',
+                      icon: Icon(Icons.date_range),
+                      hintText: 'Select the expiry date for the item.'),
+                  onSaved: (value) =>
+                      appState.myItem.expires = DateTime.parse(value!),
                 ),
-                const SizedBox(
-                  width: 10,
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 15,
+                    ),
+                    ElevatedButton(
+                      child: const Text("Save"),
+                      onPressed: () {
+                        if (_formKey.currentState != null &&
+                            _formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          appState.storeItem();
+                          _setIndex(0);
+                        }
+                      },
+                    ),
+                    const SizedBox(
+                      width: 20,
+                    ),
+                    ElevatedButton(
+                      child: const Text("Cancel"),
+                      onPressed: () {
+                        _setIndex(0);
+                      },
+                    ),
+                  ],
                 ),
-                ElevatedButton(
-                  child: const Text("Cancel"),
-                  onPressed: () {
-                    _setIndex(0);
-                  },
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
+  }
+
+  _selectDate(BuildContext context) async {
+    DateTime? newSelectedDate = await showDatePicker(
+        context: context,
+        initialDate: _selectedDate != null ? _selectedDate : DateTime.now(),
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2040),
+        builder: (BuildContext context, Widget? child) {
+          return Theme(
+            data: ThemeData.dark().copyWith(
+              colorScheme: const ColorScheme.dark(
+                primary: Colors.deepPurple,
+                onPrimary: Colors.white,
+                surface: Colors.blueGrey,
+                onSurface: Colors.yellow,
+              ),
+              dialogBackgroundColor: Colors.blue[500],
+            ),
+            child: child!,
+          );
+        });
+
+    if (newSelectedDate != null) {
+      _selectedDate = newSelectedDate;
+      _textEditingController
+        ..text = DateFormat.yMMMd().format(_selectedDate)
+        ..selection = TextSelection.fromPosition(TextPosition(
+            offset: _textEditingController.text.length,
+            affinity: TextAffinity.upstream));
+    }
   }
 }
 
@@ -264,4 +325,9 @@ class TitleCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class AlwaysDisabledFocusNode extends FocusNode {
+  @override
+  bool get hasFocus => false;
 }
