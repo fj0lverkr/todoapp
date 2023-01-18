@@ -159,11 +159,20 @@ class ItemListPage extends StatelessWidget {
   }
 }
 
-class NewItemPage extends StatelessWidget {
+class NewItemPage extends StatefulWidget {
   final Function _setIndex;
+
+  const NewItemPage(this._setIndex, {super.key});
+
+  @override
+  State<NewItemPage> createState() => _NewItemPageState();
+}
+
+class _NewItemPageState extends State<NewItemPage> {
   final _formKey = GlobalKey<FormState>();
-  NewItemPage(this._setIndex, {super.key});
+
   DateTime _selectedDate = DateTime.now();
+
   final TextEditingController _textEditingController = TextEditingController();
 
   @override
@@ -211,6 +220,7 @@ class NewItemPage extends StatelessWidget {
                 padding: const EdgeInsets.all(6.0),
                 child: TextFormField(
                   keyboardType: TextInputType.datetime,
+                  controller: _textEditingController,
                   //enabled: false,
                   onTap: () {
                     _selectDate(context);
@@ -219,8 +229,10 @@ class NewItemPage extends StatelessWidget {
                       labelText: 'Expires',
                       icon: Icon(Icons.date_range),
                       hintText: 'Select the expiry date for the item.'),
-                  onSaved: (value) =>
-                      appState.myItem.expires = DateTime.parse(value!),
+                  onSaved: (value) => (value != null && value.isNotEmpty)
+                      ? appState.myItem.expires =
+                          DateFormat.yMMMd().parse(value)
+                      : false,
                 ),
               ),
               const SizedBox(
@@ -240,7 +252,7 @@ class NewItemPage extends StatelessWidget {
                             _formKey.currentState!.validate()) {
                           _formKey.currentState!.save();
                           appState.storeItem();
-                          _setIndex(0);
+                          widget._setIndex(0);
                         }
                       },
                     ),
@@ -250,7 +262,7 @@ class NewItemPage extends StatelessWidget {
                     ElevatedButton(
                       child: const Text("Cancel"),
                       onPressed: () {
-                        _setIndex(0);
+                        widget._setIndex(0);
                       },
                     ),
                   ],
@@ -264,21 +276,22 @@ class NewItemPage extends StatelessWidget {
   }
 
   _selectDate(BuildContext context) async {
+    var theme = Theme.of(context);
     DateTime? newSelectedDate = await showDatePicker(
         context: context,
-        initialDate: _selectedDate != null ? _selectedDate : DateTime.now(),
-        firstDate: DateTime(2000),
-        lastDate: DateTime(2040),
+        initialDate: _selectedDate,
+        firstDate: DateTime.now(),
+        lastDate: DateTime.now().add(const Duration(days: 3650)),
         builder: (BuildContext context, Widget? child) {
           return Theme(
             data: ThemeData.dark().copyWith(
-              colorScheme: const ColorScheme.dark(
-                primary: Colors.deepPurple,
-                onPrimary: Colors.white,
-                surface: Colors.blueGrey,
-                onSurface: Colors.yellow,
+              colorScheme: ColorScheme.dark(
+                primary: theme.colorScheme.primary,
+                onPrimary: theme.colorScheme.onPrimary,
+                surface: theme.colorScheme.surface,
+                onSurface: theme.colorScheme.onSurface,
               ),
-              dialogBackgroundColor: Colors.blue[500],
+              dialogBackgroundColor: theme.colorScheme.primaryContainer,
             ),
             child: child!,
           );
