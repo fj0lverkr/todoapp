@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:todoapp/main.dart';
 import 'package:todoapp/widgets/titlecard.dart';
+import 'package:todoapp/widgets/item.dart';
 
 class ItemListPage extends StatelessWidget {
   final Function _setIndex;
@@ -30,10 +31,7 @@ class ItemListPage extends StatelessWidget {
                       title: Text('No items yet...'),
                     )
                   ] else ...[
-                    for (var item in appState.items)
-                      ListTile(
-                        title: Text(item.title),
-                      ),
+                    for (var item in appState.items) ItemWidget(item: item),
                   ]
                 ],
               ),
