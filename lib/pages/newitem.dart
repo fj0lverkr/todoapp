@@ -66,21 +66,35 @@ class _NewItemPageState extends State<NewItemPage> {
               Padding(
                 padding: const EdgeInsets.all(6.0),
                 child: TextFormField(
-                  keyboardType: TextInputType.datetime,
-                  controller: _textEditingController,
-                  //enabled: false,
-                  onTap: () {
-                    selectDate(context, _selectedDate, _textEditingController);
-                  },
-                  decoration: const InputDecoration(
-                      labelText: 'Expires',
-                      icon: Icon(Icons.date_range),
-                      hintText: 'Select the expiry date for the item.'),
-                  onSaved: (value) => (value != null && value.isNotEmpty)
-                      ? appState.myItem.expires =
-                          DateFormat.yMMMd().parse(value)
-                      : false,
-                ),
+                    keyboardType: TextInputType.datetime,
+                    controller: _textEditingController,
+                    //enabled: false,
+                    onTap: () {
+                      selectDate(
+                          context, _selectedDate, _textEditingController);
+                    },
+                    decoration: const InputDecoration(
+                        labelText: 'Expires',
+                        icon: Icon(Icons.date_range),
+                        hintText: 'Select the expiry date for the item.'),
+                    onSaved: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        try {
+                          appState.myItem.expires =
+                              DateFormat.yMMMd().parse(value);
+                        } on FormatException {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(const SnackBar(
+                            content: Text("Invalid date input, ignoring date."),
+                          ));
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content:
+                                Text("Error while setting expiration date: $e"),
+                          ));
+                        }
+                      }
+                    }),
               ),
               const SizedBox(
                 height: 20,
