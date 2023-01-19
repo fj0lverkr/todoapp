@@ -42,6 +42,14 @@ Widget _buildPopupDialog(BuildContext context, TodoItem item) {
       ],
     ),
     actions: <Widget>[
+      if (!item.done)
+        TextButton(
+          onPressed: () {
+            item.toggleDone();
+            Navigator.of(context).pop();
+          },
+          child: const Text("Set done"),
+        ),
       TextButton(
         onPressed: () {
           Navigator.of(context).pop();
