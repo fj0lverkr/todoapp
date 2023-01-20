@@ -37,6 +37,11 @@ class MyAppState extends ChangeNotifier {
     items.sort((a, b) => a.created.compareTo(b.created));
     notifyListeners();
   }
+
+  void deleteItem(TodoItem item) {
+    items.remove(item);
+    notifyListeners();
+  }
 }
 
 class MainPage extends StatefulWidget {
