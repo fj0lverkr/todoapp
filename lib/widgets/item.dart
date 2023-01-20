@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
+import 'package:todoapp/main.dart';
 import 'package:todoapp/model/item.dart';
 
 class ItemWidget extends StatelessWidget {
@@ -13,6 +15,7 @@ class ItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
     return Padding(
       padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0),
       child: ListTile(
@@ -21,14 +24,15 @@ class ItemWidget extends StatelessWidget {
           await showDialog(
               context: context,
               builder: (BuildContext context) =>
-                  _buildPopupDialog(context, item));
+                  _buildPopupDialog(context, item, appState));
         },
       ),
     );
   }
 }
 
-Widget _buildPopupDialog(BuildContext context, TodoItem item) {
+Widget _buildPopupDialog(
+    BuildContext context, TodoItem item, MyAppState appState) {
   return AlertDialog(
     title: Text(item.title),
     content: Column(
@@ -36,20 +40,26 @@ Widget _buildPopupDialog(BuildContext context, TodoItem item) {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(item.description != null ? item.description! : ''),
-        item.expires != null
-            ? Text('Expires: ${DateFormat.yMMMd().format(item.expires!)}')
-            : const SizedBox(),
+        Text(item.expires != null
+            ? 'Expires: ${DateFormat.yMMMd().format(item.expires!)}'
+            : ''),
       ],
     ),
     actions: <Widget>[
       if (!item.done)
-        TextButton(
+        IconButton(
           onPressed: () {
             item.toggleDone();
             Navigator.of(context).pop();
           },
-          child: const Text("Set done"),
+          icon: const Icon(Icons.done),
         ),
+      IconButton(
+          onPressed: () {
+            appState.deleteItem(item);
+            Navigator.of(context).pop();
+          },
+          icon: const Icon(Icons.delete)),
       TextButton(
         onPressed: () {
           Navigator.of(context).pop();
