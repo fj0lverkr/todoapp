@@ -5,11 +5,13 @@ import 'package:intl/intl.dart';
 import 'package:todoapp/model/item.dart';
 
 class TodoDatabase {
-  FirebaseDatabase todoDatabase = FirebaseDatabase.instance;
+  final FirebaseDatabase _todoDatabase = FirebaseDatabase.instance;
+  DatabaseReference itemsRef = FirebaseDatabase.instance.ref("items");
+
   void createItem(TodoItem item) async {
     String expires =
         item.expires != null ? DateFormat.yMMMd().format(item.expires!) : '';
-    DatabaseReference ref = todoDatabase.ref("items/${item.id}");
+    DatabaseReference ref = _todoDatabase.ref("items/${item.id}");
     await ref.set({
       "id": item.id,
       "title": item.title,
@@ -22,7 +24,7 @@ class TodoDatabase {
 
   Future<List<TodoItem>> getAllItems() async {
     var items = <TodoItem>[];
-    final DatabaseReference ref = todoDatabase.ref("items");
+    final DatabaseReference ref = _todoDatabase.ref("items");
     final snapshot = await ref.get();
     if (snapshot.exists) {
       for (var element in snapshot.children) {
@@ -33,12 +35,12 @@ class TodoDatabase {
   }
 
   void setItemDone(String itemId) {
-    final DatabaseReference ref = todoDatabase.ref("items/$itemId");
+    final DatabaseReference ref = _todoDatabase.ref("items/$itemId");
     ref.update({"done": true});
   }
 
   void deleteItem(TodoItem item) {
-    final DatabaseReference ref = todoDatabase.ref("items/${item.id}");
+    final DatabaseReference ref = _todoDatabase.ref("items/${item.id}");
     ref.remove();
   }
 }

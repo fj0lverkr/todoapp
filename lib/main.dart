@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:firebase_database/firebase_database.dart';
 
 import 'package:todoapp/pages/itemlist.dart';
 import 'package:todoapp/pages/newitem.dart';
@@ -41,11 +40,9 @@ class MyAppState extends ChangeNotifier {
   List<TodoItem> items = [];
   late TodoItem myItem;
 
-  DatabaseReference ref = TodoDatabase().todoDatabase.ref('items');
-
   void initData() {
     refreshItems();
-    ref.onValue.listen((_) {
+    TodoDatabase().itemsRef.onValue.listen((_) {
       refreshItems();
     });
   }
