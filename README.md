@@ -1,16 +1,16 @@
 # todoapp
 
-A new Flutter project.
+A small, online only (powered by Firebase) Todo app written in dart/flutter.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Firebase
+When cloning the project Firebase will still need to be set up, follow instructions [here](https://firebase.google.com/docs/flutter/setup), note that you only need to do steps 1 and 2.
 
-A few resources to get you started if this is your first Flutter project:
+As of writing this, only the following platforms are supported by Firebase:
+- Android
+- iOS
+- MacOS (beta)
+- Web
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Keep this in mind.

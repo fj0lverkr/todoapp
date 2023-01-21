@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:todoapp/main.dart';
 import 'package:todoapp/widgets/selectdate.dart';
@@ -47,7 +48,8 @@ class _NewItemPageState extends State<NewItemPage> {
                       labelText: 'Title*',
                       icon: Icon(Icons.title),
                       hintText: 'Enter a title for your item.'),
-                  onSaved: (value) => appState.myItem = TodoItem(value!),
+                  onSaved: (value) =>
+                      appState.myItem = TodoItem(const Uuid().v4(), value!),
                 ),
               ),
               Padding(

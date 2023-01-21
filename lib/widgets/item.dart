@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'package:todoapp/main.dart';
 import 'package:todoapp/model/item.dart';
+import 'package:todoapp/model/database.dart';
 
 class ItemWidget extends StatelessWidget {
   const ItemWidget({
@@ -49,7 +50,8 @@ Widget _buildPopupDialog(
       if (!item.done)
         IconButton(
           onPressed: () {
-            item.toggleDone();
+            TodoDatabase().setItemDone(item.id);
+            appState.initData();
             Navigator.of(context).pop();
           },
           icon: const Icon(Icons.done),
