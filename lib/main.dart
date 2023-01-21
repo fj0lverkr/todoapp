@@ -25,10 +25,10 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
       child: MaterialApp(
-        title: 'Flutter Demo',
+        title: 'Todo App',
         theme: ThemeData(
           useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.brown),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
         ),
         home: const MainPage(),
       ),
@@ -55,10 +55,12 @@ class MyAppState extends ChangeNotifier {
 
   void storeItem() {
     TodoDatabase().createItem(myItem);
+    refreshItems();
   }
 
   void deleteItem(TodoItem item) {
     TodoDatabase().deleteItem(item);
+    refreshItems();
   }
 }
 
