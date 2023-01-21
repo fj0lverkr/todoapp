@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:firebase_database/firebase_database.dart';
+
 import 'package:todoapp/pages/itemlist.dart';
 import 'package:todoapp/pages/newitem.dart';
+import 'package:todoapp/model/database.dart';
 import 'package:todoapp/model/item.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -29,18 +38,30 @@ class MyApp extends StatelessWidget {
 }
 
 class MyAppState extends ChangeNotifier {
-  var items = <TodoItem>[];
+  List<TodoItem> items = [];
   late TodoItem myItem;
 
-  void storeItem() {
-    items.add(myItem);
+  DatabaseReference ref = TodoDatabase().todoDatabase.ref('items');
+
+  void initData() {
+    refreshItems();
+    ref.onValue.listen((_) {
+      refreshItems();
+    });
+  }
+
+  void refreshItems() async {
+    items = await TodoDatabase().getAllItems();
     items.sort((a, b) => a.created.compareTo(b.created));
     notifyListeners();
   }
 
+  void storeItem() {
+    TodoDatabase().createItem(myItem);
+  }
+
   void deleteItem(TodoItem item) {
-    items.remove(item);
-    notifyListeners();
+    TodoDatabase().deleteItem(item);
   }
 }
 
@@ -62,6 +83,8 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
+    var appState = context.watch<MyAppState>();
+    appState.initData();
     Widget page;
     switch (selectedIndex) {
       case 0:
