@@ -9,6 +9,11 @@ When cloning the project Firebase will still need to be set up, follow instructi
 
 For authentication to work, check /lib/model/secret_template.dart for instructions.
 
+In the future we will improve authentication:
+- Use Google Auth
+- Have a shared list of items as well as private ones
+- provide user registration and login options
+
 As of writing this, only the following platforms are supported by Firebase:
 - Android
 - iOS
