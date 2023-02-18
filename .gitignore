@@ -138,3 +138,6 @@ app.*.symbols
 **/android/app/google-services.json
 **/ios/firebase_app_id_file.json
 **/macos/firebase_app_id_file.json
+
+#Other secrets
+**/model/secret.dart
