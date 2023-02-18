@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 
 import 'package:todoapp/pages/itemlist.dart';
 import 'package:todoapp/pages/newitem.dart';
+import 'package:todoapp/model/login.dart';
 import 'package:todoapp/model/database.dart';
 import 'package:todoapp/model/item.dart';
 
@@ -14,58 +15,65 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  final cred = await TodoLogin().signInWithEmailAndPassword();
+  final uid = cred.user?.uid;
+  runApp(MyApp(uid!));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String uid;
+  const MyApp(this.uid, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
+      create: (context) => MyAppState(uid),
       child: MaterialApp(
         title: 'Todo App',
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
         ),
-        home: const MainPage(),
+        home: MainPage(uid),
       ),
     );
   }
 }
 
 class MyAppState extends ChangeNotifier {
+  final String uid;
+  MyAppState(this.uid);
   List<TodoItem> items = [];
   late TodoItem myItem;
 
-  void initData() {
+  String initData() {
     refreshItems();
-    TodoDatabase().itemsRef.onValue.listen((_) {
+    TodoDatabase(uid).itemsRef.onValue.listen((_) {
       refreshItems();
     });
+    return uid;
   }
 
   void refreshItems() async {
-    items = await TodoDatabase().getAllItems();
+    items = await TodoDatabase(uid).getAllItems();
     items.sort((a, b) => a.created.compareTo(b.created));
     notifyListeners();
   }
 
   void storeItem() {
-    TodoDatabase().createItem(myItem);
+    TodoDatabase(uid).createItem(myItem);
     refreshItems();
   }
 
   void deleteItem(TodoItem item) {
-    TodoDatabase().deleteItem(item);
+    TodoDatabase(uid).deleteItem(item);
     refreshItems();
   }
 }
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+  final String uid;
+  const MainPage(this.uid, {super.key});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -83,11 +91,11 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     var appState = context.watch<MyAppState>();
-    appState.initData();
+    var uid = appState.initData();
     Widget page;
     switch (selectedIndex) {
       case 0:
-        page = ItemListPage(_setIndex);
+        page = ItemListPage(_setIndex, uid);
         break;
       case 1:
         page = NewItemPage(_setIndex);

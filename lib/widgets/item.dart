@@ -10,9 +10,11 @@ class ItemWidget extends StatelessWidget {
   const ItemWidget({
     Key? key,
     required this.item,
+    required this.uid,
   }) : super(key: key);
 
   final TodoItem item;
+  final String uid;
 
   @override
   Widget build(BuildContext context) {
@@ -42,16 +44,16 @@ class ItemWidget extends StatelessWidget {
           appState.deleteItem(item);
           appState.refreshItems();
         } else {
-          TodoDatabase().setItemDone(item.id);
+          TodoDatabase(uid).setItemDone(item.id);
           appState.refreshItems();
         }
         return false;
       },
-      background: Align(
+      background: const Align(
         alignment: Alignment.centerLeft,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
+          children: [
             Padding(
               padding: EdgeInsets.only(left: 16),
               child: Icon(Icons.done),
@@ -93,7 +95,7 @@ class ItemWidget extends StatelessWidget {
               await showDialog(
                   context: context,
                   builder: (BuildContext context) =>
-                      _buildPopupDialog(context, item, appState));
+                      _buildPopupDialog(context, item, appState, uid));
             },
           ),
         ),
@@ -103,7 +105,7 @@ class ItemWidget extends StatelessWidget {
 }
 
 Widget _buildPopupDialog(
-    BuildContext context, TodoItem item, MyAppState appState) {
+    BuildContext context, TodoItem item, MyAppState appState, String uid) {
   return AlertDialog(
     title: Text(item.title),
     content: Column(
@@ -120,7 +122,7 @@ Widget _buildPopupDialog(
       if (!item.done)
         IconButton(
           onPressed: () {
-            TodoDatabase().setItemDone(item.id);
+            TodoDatabase(uid).setItemDone(item.id);
             appState.refreshItems();
             Navigator.of(context).pop();
           },

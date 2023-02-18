@@ -7,7 +7,8 @@ import 'package:todoapp/widgets/item.dart';
 
 class ItemListPage extends StatelessWidget {
   final Function _setIndex;
-  const ItemListPage(this._setIndex, {super.key});
+  final String uid;
+  const ItemListPage(this._setIndex, this.uid, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,8 @@ class ItemListPage extends StatelessWidget {
                       title: Text('No items yet...'),
                     )
                   ] else ...[
-                    for (var item in appState.items) ItemWidget(item: item),
+                    for (var item in appState.items)
+                      ItemWidget(uid: uid, item: item),
                   ]
                 ],
               ),
