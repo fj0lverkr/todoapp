@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 
 import 'package:todoapp/pages/itemlist.dart';
 import 'package:todoapp/pages/newitem.dart';
-import 'package:todoapp/model/login.dart';
 import 'package:todoapp/model/database.dart';
 import 'package:todoapp/model/item.dart';
 
@@ -15,26 +15,32 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  final cred = await TodoLogin().signInWithEmailAndPassword();
-  final uid = cred.user?.uid;
-  runApp(MyApp(uid!));
+
+  FirebaseAuth.instance.authStateChanges().listen((User? user) {
+    if (user == null) {
+      runApp(const MyApp('', false));
+    } else {
+      runApp(MyApp(user.uid, true));
+    }
+  });
 }
 
 class MyApp extends StatelessWidget {
   final String uid;
-  const MyApp(this.uid, {super.key});
+  final bool isLoggedIn;
+  const MyApp(this.uid, this.isLoggedIn, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => MyAppState(uid),
+      create: (context) => MyAppState(uid, isLoggedIn),
       child: MaterialApp(
         title: 'Todo App',
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
         ),
-        home: MainPage(uid),
+        home: isLoggedIn ? MainPage(uid) : const LoginPage(),
       ),
     );
   }
@@ -42,7 +48,8 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   final String uid;
-  MyAppState(this.uid);
+  bool isLoggedIn;
+  MyAppState(this.uid, this.isLoggedIn);
   List<TodoItem> items = [];
   late TodoItem myItem;
 
@@ -137,6 +144,96 @@ class _MainPageState extends State<MainPage> {
               ),
             ),
           ],
+        ),
+      );
+    });
+  }
+}
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
+  late String login;
+  late String password;
+
+  @override
+  Widget build(BuildContext context) {
+    var theme = Theme.of(context);
+    var appState = context.watch<MyAppState>();
+    return LayoutBuilder(builder: (context, constraints) {
+      return Scaffold(
+        body: Container(
+          color: theme.colorScheme.background,
+          child: Padding(
+            padding: const EdgeInsets.all(30.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(6.0),
+                    child: TextFormField(
+                      validator: (String? value) {
+                        return (value == null || value.isEmpty)
+                            ? 'Invalid E-mail address.'
+                            : null;
+                      },
+                      decoration: const InputDecoration(
+                          labelText: 'E-mail address',
+                          icon: Icon(Icons.mail),
+                          hintText: 'Your e-mail.'),
+                      onSaved: (value) => login = value!,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(6.0),
+                    child: TextFormField(
+                      validator: (String? value) {
+                        return (value == null || value.isEmpty)
+                            ? 'Invalid password.'
+                            : null;
+                      },
+                      onSaved: (newValue) => password = newValue!,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                          labelText: 'Password',
+                          icon: Icon(Icons.password),
+                          hintText: 'Your password.'),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(6.0),
+                    child: Row(
+                      children: [
+                        const SizedBox(
+                          width: 15,
+                        ),
+                        ElevatedButton(
+                          child: const Text("Login"),
+                          onPressed: () {
+                            if (_formKey.currentState != null &&
+                                _formKey.currentState!.validate()) {
+                              _formKey.currentState!.save();
+                              UnimplementedError('to be implemented');
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       );
     });
