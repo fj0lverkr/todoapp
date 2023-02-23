@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyAppState extends ChangeNotifier {
-  final String uid;
+  String uid;
   bool isLoggedIn;
   MyAppState(this.uid, this.isLoggedIn);
   List<TodoItem> items = [];
@@ -163,11 +163,10 @@ class _LoginPageState extends State<LoginPage> {
   late String login;
   late String password;
 
-  Future<bool> _doLogin(String email, String password) async {
+  Future<LoginResult> _doLogin(String email, String password) async {
     LoginResult result =
         await TodoLogin().signInWithEmailAndPassword(email, password);
-    print(result.message);
-    return result.success;
+    return result;
   }
 
   @override
@@ -227,11 +226,16 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         ElevatedButton(
                           child: const Text("Login"),
-                          onPressed: () {
+                          onPressed: () async {
                             if (_formKey.currentState != null &&
                                 _formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
-                              _doLogin(login, password);
+                              LoginResult result =
+                                  await _doLogin(login, password);
+                              if (result.success) {
+                                appState.isLoggedIn = true;
+                                appState.uid = result.message!;
+                              }
                             }
                           },
                         ),
