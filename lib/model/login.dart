@@ -1,14 +1,21 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
+class LoginResult {
+  final bool success;
+  final String? message;
+
+  LoginResult(this.success, this.message);
+}
+
 class TodoLogin {
-  Future<UserCredential> signInWithEmailAndPassword(
+  Future<LoginResult> signInWithEmailAndPassword(
       String email, String password) async {
     try {
       final credential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
-      return credential;
+      return LoginResult(true, credential.user?.uid);
     } on FirebaseAuthException catch (e) {
-      throw FirebaseAuthException(code: e.toString());
+      return LoginResult(false, e.message.toString());
     }
   }
 }

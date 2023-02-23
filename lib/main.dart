@@ -9,6 +9,7 @@ import 'package:todoapp/pages/itemlist.dart';
 import 'package:todoapp/pages/newitem.dart';
 import 'package:todoapp/model/database.dart';
 import 'package:todoapp/model/item.dart';
+import 'package:todoapp/model/login.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -162,6 +163,13 @@ class _LoginPageState extends State<LoginPage> {
   late String login;
   late String password;
 
+  Future<bool> _doLogin(String email, String password) async {
+    LoginResult result =
+        await TodoLogin().signInWithEmailAndPassword(email, password);
+    print(result.message);
+    return result.success;
+  }
+
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
@@ -223,7 +231,7 @@ class _LoginPageState extends State<LoginPage> {
                             if (_formKey.currentState != null &&
                                 _formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
-                              UnimplementedError('to be implemented');
+                              _doLogin(login, password);
                             }
                           },
                         ),
