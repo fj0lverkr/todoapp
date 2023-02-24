@@ -169,6 +169,12 @@ class _LoginPageState extends State<LoginPage> {
     return result;
   }
 
+  void _showSnackbar(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(text),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
@@ -235,6 +241,8 @@ class _LoginPageState extends State<LoginPage> {
                               if (result.success) {
                                 appState.isLoggedIn = true;
                                 appState.uid = result.message!;
+                              } else {
+                                _showSnackbar(result.message!);
                               }
                             }
                           },
