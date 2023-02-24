@@ -49,11 +49,11 @@ class ItemWidget extends StatelessWidget {
         }
         return false;
       },
-      background: const Align(
+      background: Align(
         alignment: Alignment.centerLeft,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+          children: const [
             Padding(
               padding: EdgeInsets.only(left: 16),
               child: Icon(Icons.done),
