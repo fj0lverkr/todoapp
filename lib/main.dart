@@ -164,9 +164,11 @@ class _LoginPageState extends State<LoginPage> {
   late String password;
 
   Future<LoginResult> _doLogin(String email, String password) async {
-    LoginResult result =
-        await TodoLogin().signInWithEmailAndPassword(email, password);
-    return result;
+    return await TodoLogin().signInWithEmailAndPassword(email, password);
+  }
+
+  Future<LoginResult> _doCreateUser(String email, String password) async {
+    return await TodoLogin().createUser(email, password);
   }
 
   void _showSnackbar(String text) {
@@ -228,7 +230,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: Row(
                       children: [
                         const SizedBox(
-                          width: 15,
+                          width: 35,
                         ),
                         ElevatedButton(
                           child: const Text("Login"),
@@ -247,6 +249,26 @@ class _LoginPageState extends State<LoginPage> {
                             }
                           },
                         ),
+                        const SizedBox(
+                          width: 25,
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            if (_formKey.currentState != null &&
+                                _formKey.currentState!.validate()) {
+                              _formKey.currentState!.save();
+                              LoginResult result =
+                                  await _doCreateUser(login, password);
+                              if (result.success) {
+                                appState.isLoggedIn = true;
+                                appState.uid = result.message!;
+                              } else {
+                                _showSnackbar(result.message!);
+                              }
+                            }
+                          },
+                          child: const Text('create account'),
+                        )
                       ],
                     ),
                   ),

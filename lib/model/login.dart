@@ -18,4 +18,14 @@ class TodoLogin {
       return LoginResult(false, e.message.toString());
     }
   }
+
+  Future<LoginResult> createUser(String email, String password) async {
+    try {
+      final credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+      return LoginResult(true, credential.user?.uid);
+    } on FirebaseAuthException catch (e) {
+      return LoginResult(false, e.message.toString());
+    }
+  }
 }
