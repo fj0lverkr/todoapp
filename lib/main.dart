@@ -68,8 +68,9 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void storeItem() {
-    TodoDatabase(uid).createItem(myItem);
+  void storeItem(bool isShared) {
+    String location = isShared ? "sharedItems" : uid;
+    TodoDatabase(location).createItem(myItem);
     refreshItems();
   }
 
