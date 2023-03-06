@@ -9,8 +9,10 @@ class TodoItem {
   DateTime created = DateTime.now();
   DateTime? expires;
   bool done = false;
+  bool isShared;
 
-  TodoItem(this.id, this.title, {this.description, this.expires});
+  TodoItem(this.id, this.title,
+      {this.description, this.expires, this.isShared = false});
 
   factory TodoItem.fromJson(dynamic json) {
     json = jsonDecode(json);

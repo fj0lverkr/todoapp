@@ -44,7 +44,7 @@ class ItemWidget extends StatelessWidget {
           appState.deleteItem(item);
           appState.refreshItems();
         } else {
-          TodoDatabase(uid).setItemDone(item.id);
+          TodoDatabase(uid).setItemDone(item);
           appState.refreshItems();
         }
         return false;
@@ -122,7 +122,7 @@ Widget _buildPopupDialog(
       if (!item.done)
         IconButton(
           onPressed: () {
-            TodoDatabase(uid).setItemDone(item.id);
+            TodoDatabase(uid).setItemDone(item);
             appState.refreshItems();
             Navigator.of(context).pop();
           },
