@@ -131,17 +131,15 @@ Widget _buildPopupDialog(
       if (!item.done)
         IconButton(
           onPressed: () {
-            TodoDatabase(uid).setItemDone(item);
-            appState.refreshItems();
             Navigator.of(context).pop();
+            appState.setItemDone(item);
           },
           icon: const Icon(Icons.done),
         ),
       IconButton(
           onPressed: () {
-            appState.deleteItem(item);
-            appState.refreshItems();
             Navigator.of(context).pop();
+            appState.deleteItem(item);
           },
           icon: const Icon(Icons.delete)),
       TextButton(

@@ -143,8 +143,8 @@ class _NewItemPageState extends State<NewItemPage> {
                         if (_formKey.currentState != null &&
                             _formKey.currentState!.validate()) {
                           _formKey.currentState!.save();
-                          appState.storeItem(itemIsShared);
                           widget._setIndex(0);
+                          appState.storeItem(itemIsShared);
                         }
                       },
                     ),

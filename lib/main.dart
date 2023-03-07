@@ -50,6 +50,7 @@ class MyApp extends StatelessWidget {
 class MyAppState extends ChangeNotifier {
   String uid;
   bool isLoggedIn;
+  bool isAppLoading = true;
   MyAppState(this.uid, this.isLoggedIn);
   List<TodoItem> items = [];
   late TodoItem myItem;
@@ -57,6 +58,7 @@ class MyAppState extends ChangeNotifier {
   String initData() {
     refreshItems();
     TodoDatabase(uid).itemsRef.onValue.listen((_) {
+      setAppLoadingState(true);
       refreshItems();
     });
     return uid;
@@ -65,18 +67,31 @@ class MyAppState extends ChangeNotifier {
   void refreshItems() async {
     items = await TodoDatabase(uid).getAllItems();
     items.sort((a, b) => a.created.compareTo(b.created));
-    notifyListeners();
+    setAppLoadingState(false);
   }
 
   void storeItem(bool isShared) {
+    setAppLoadingState(true);
     String location = isShared ? "sharedItems" : uid;
     TodoDatabase(location).createItem(myItem);
     refreshItems();
   }
 
+  void setItemDone(TodoItem item) {
+    setAppLoadingState(true);
+    TodoDatabase(uid).setItemDone(item);
+    refreshItems();
+  }
+
   void deleteItem(TodoItem item) {
+    setAppLoadingState(true);
     TodoDatabase(uid).deleteItem(item);
     refreshItems();
+  }
+
+  void setAppLoadingState(bool isLoading) {
+    isAppLoading = isLoading;
+    notifyListeners();
   }
 }
 
@@ -114,39 +129,55 @@ class _MainPageState extends State<MainPage> {
     }
 
     return LayoutBuilder(builder: (context, constraints) {
-      return Scaffold(
-        body: Row(
-          children: [
-            SafeArea(
-              child: NavigationRail(
-                backgroundColor: theme.colorScheme.secondaryContainer,
-                extended: constraints.maxWidth >= 600,
-                destinations: const [
-                  NavigationRailDestination(
-                    icon: Icon(Icons.list),
-                    label: Text('Todo list'),
+      return Stack(
+        children: [
+          Scaffold(
+            body: Row(
+              children: [
+                SafeArea(
+                  child: NavigationRail(
+                    backgroundColor: theme.colorScheme.secondaryContainer,
+                    extended: constraints.maxWidth >= 600,
+                    destinations: const [
+                      NavigationRailDestination(
+                        icon: Icon(Icons.list),
+                        label: Text('Todo list'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(Icons.add),
+                        label: Text('New Todo'),
+                      ),
+                    ],
+                    selectedIndex: selectedIndex,
+                    onDestinationSelected: (value) {
+                      setState(() {
+                        selectedIndex = value;
+                      });
+                    },
                   ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.add),
-                    label: Text('New Todo'),
+                ),
+                Expanded(
+                  child: Container(
+                    color: theme.colorScheme.primaryContainer,
+                    child: page,
                   ),
-                ],
-                selectedIndex: selectedIndex,
-                onDestinationSelected: (value) {
-                  setState(() {
-                    selectedIndex = value;
-                  });
-                },
+                ),
+              ],
+            ),
+          ),
+          if (appState.isAppLoading)
+            Opacity(
+              opacity: 0.7,
+              child: ModalBarrier(
+                  dismissible: false, color: theme.colorScheme.inverseSurface),
+            ),
+          if (appState.isAppLoading)
+            Center(
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.onInverseSurface,
               ),
             ),
-            Expanded(
-              child: Container(
-                color: theme.colorScheme.primaryContainer,
-                child: page,
-              ),
-            ),
-          ],
-        ),
+        ],
       );
     });
   }
@@ -195,6 +226,20 @@ class _LoginPageState extends State<LoginPage> {
                   Padding(
                     padding: const EdgeInsets.all(6.0),
                     child: TextFormField(
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) async {
+                        if (_formKey.currentState != null &&
+                            _formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          LoginResult result = await _doLogin(login, password);
+                          if (result.success) {
+                            appState.isLoggedIn = true;
+                            appState.uid = result.message!;
+                          } else {
+                            _showSnackbar(result.message!);
+                          }
+                        }
+                      },
                       validator: (String? value) {
                         return (value == null || value.isEmpty)
                             ? 'Invalid E-mail address.'
@@ -210,6 +255,20 @@ class _LoginPageState extends State<LoginPage> {
                   Padding(
                     padding: const EdgeInsets.all(6.0),
                     child: TextFormField(
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) async {
+                        if (_formKey.currentState != null &&
+                            _formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          LoginResult result = await _doLogin(login, password);
+                          if (result.success) {
+                            appState.isLoggedIn = true;
+                            appState.uid = result.message!;
+                          } else {
+                            _showSnackbar(result.message!);
+                          }
+                        }
+                      },
                       validator: (String? value) {
                         return (value == null || value.isEmpty)
                             ? 'Invalid password.'
