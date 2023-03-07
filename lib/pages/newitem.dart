@@ -101,17 +101,30 @@ class _NewItemPageState extends State<NewItemPage> {
                     }),
               ),
               const SizedBox(
-                height: 20,
+                height: 12,
               ),
               Padding(
                 padding: const EdgeInsets.all(6.0),
-                child: Checkbox(
-                  value: itemIsShared,
-                  onChanged: (value) {
-                    setState(() {
-                      itemIsShared = value!;
-                    });
-                  },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.people_outline),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Checkbox(
+                      value: itemIsShared,
+                      onChanged: (value) {
+                        setState(() {
+                          itemIsShared = value!;
+                        });
+                      },
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    const Text("Shared item")
+                  ],
                 ),
               ),
               const SizedBox(
