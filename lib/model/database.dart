@@ -33,16 +33,36 @@ class TodoDatabase {
         items.add(TodoItem.fromJson(jsonEncode(element.value)));
       }
     }
+    List<TodoItem> sharedItems = await getSharedItems();
+    for (var sharedItem in sharedItems) {
+      items.add(sharedItem);
+    }
     return items;
   }
 
-  void setItemDone(String itemId) {
-    final DatabaseReference ref = _todoDatabase.ref("items/$_uid/$itemId");
+  Future<List<TodoItem>> getSharedItems() async {
+    var items = <TodoItem>[];
+    final DatabaseReference ref = _todoDatabase.ref("items/sharedItems/");
+    final snapshot = await ref.get();
+    if (snapshot.exists) {
+      for (var element in snapshot.children) {
+        TodoItem item = TodoItem.fromJson(jsonEncode(element.value));
+        item.isShared = true;
+        items.add(item);
+      }
+    }
+    return items;
+  }
+
+  void setItemDone(TodoItem item) {
+    String owner = item.isShared ? "sharedItems" : _uid;
+    final DatabaseReference ref = _todoDatabase.ref("items/$owner/${item.id}");
     ref.update({"done": true});
   }
 
   void deleteItem(TodoItem item) {
-    final DatabaseReference ref = _todoDatabase.ref("items/$_uid/${item.id}");
+    String owner = item.isShared ? "sharedItems" : _uid;
+    final DatabaseReference ref = _todoDatabase.ref("items/$owner/${item.id}");
     ref.remove();
   }
 }

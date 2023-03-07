@@ -37,6 +37,7 @@ class ItemWidget extends StatelessWidget {
     bool itemExpired = (!item.done &&
         item.expires != null &&
         item.expires!.compareTo(DateTime.now()) < 0);
+    bool itemShared = item.isShared;
     return Dismissible(
       key: Key(item.id),
       confirmDismiss: (direction) async {
@@ -44,16 +45,16 @@ class ItemWidget extends StatelessWidget {
           appState.deleteItem(item);
           appState.refreshItems();
         } else {
-          TodoDatabase(uid).setItemDone(item.id);
+          TodoDatabase(uid).setItemDone(item);
           appState.refreshItems();
         }
         return false;
       },
-      background: const Align(
+      background: Align(
         alignment: Alignment.centerLeft,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+          children: const [
             Padding(
               padding: EdgeInsets.only(left: 16),
               child: Icon(Icons.done),
@@ -70,7 +71,13 @@ class ItemWidget extends StatelessWidget {
         child: Card(
           color: itemExpired
               ? theme.colorScheme.errorContainer
-              : theme.colorScheme.primaryContainer,
+              : item.done
+                  ? itemShared
+                      ? theme.colorScheme.surfaceVariant
+                      : theme.colorScheme.secondaryContainer
+                  : itemShared
+                      ? theme.colorScheme.surface
+                      : theme.colorScheme.primaryContainer,
           elevation: 2,
           child: ListTile(
             leading: item.done
@@ -90,7 +97,9 @@ class ItemWidget extends StatelessWidget {
                         ? itemDescriptionDoneStyle
                         : itemDescriptionStyle)
                 : null,
-            trailing: const Icon(Icons.more_vert),
+            trailing: itemShared
+                ? const Icon(Icons.people_outline)
+                : const Icon(Icons.lock_outline),
             onTap: () async {
               await showDialog(
                   context: context,
@@ -122,17 +131,15 @@ Widget _buildPopupDialog(
       if (!item.done)
         IconButton(
           onPressed: () {
-            TodoDatabase(uid).setItemDone(item.id);
-            appState.refreshItems();
             Navigator.of(context).pop();
+            appState.setItemDone(item);
           },
           icon: const Icon(Icons.done),
         ),
       IconButton(
           onPressed: () {
-            appState.deleteItem(item);
-            appState.refreshItems();
             Navigator.of(context).pop();
+            appState.deleteItem(item);
           },
           icon: const Icon(Icons.delete)),
       TextButton(

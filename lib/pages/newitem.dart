@@ -23,6 +23,8 @@ class _NewItemPageState extends State<NewItemPage> {
 
   final TextEditingController _textEditingController = TextEditingController();
 
+  bool itemIsShared = false;
+
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
@@ -99,6 +101,33 @@ class _NewItemPageState extends State<NewItemPage> {
                     }),
               ),
               const SizedBox(
+                height: 12,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.people_outline),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Checkbox(
+                      value: itemIsShared,
+                      onChanged: (value) {
+                        setState(() {
+                          itemIsShared = value!;
+                        });
+                      },
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    const Text("Shared item")
+                  ],
+                ),
+              ),
+              const SizedBox(
                 height: 20,
               ),
               Padding(
@@ -114,8 +143,8 @@ class _NewItemPageState extends State<NewItemPage> {
                         if (_formKey.currentState != null &&
                             _formKey.currentState!.validate()) {
                           _formKey.currentState!.save();
-                          appState.storeItem();
                           widget._setIndex(0);
+                          appState.storeItem(itemIsShared);
                         }
                       },
                     ),
