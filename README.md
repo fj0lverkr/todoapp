@@ -26,7 +26,8 @@ A small, online only (powered by Firebase) Todo app written in dart/flutter.
 
 In the future we will improve authentication:
 - stay logged in over different app launches
-- Potentially use Google Auth
+- implement a logout flow
+- Possibly use Google Auth
 
 As of writing this, only the following platforms are supported by Firebase:
 - Android
