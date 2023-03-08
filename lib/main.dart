@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:todoapp/pages/itemlist.dart';
 import 'package:todoapp/pages/newitem.dart';
+import 'package:todoapp/pages/logout.dart';
 import 'package:todoapp/model/database.dart';
 import 'package:todoapp/model/item.dart';
 import 'package:todoapp/model/login.dart';
@@ -24,26 +25,32 @@ void main() async {
   FirebaseAuth.instance.authStateChanges().listen((User? user) async {
     if (user == null) {
       if (prefs.getString('fb_uid') != null) {
-        runApp(MyApp(prefs.getString('fb_uid')!, true));
+        String mail = prefs.getString('fb_userMail') != null
+            ? prefs.getString('fb_userMail')!
+            : "";
+        runApp(MyApp(prefs.getString('fb_uid')!, mail, true));
       } else {
-        runApp(const MyApp('', false));
+        runApp(const MyApp('', '', false));
       }
     } else {
       await prefs.setString('fb_uid', user.uid);
-      runApp(MyApp(user.uid, true));
+      await prefs.setString(
+          'fb_usermail', user.email != null ? user.email! : "");
+      runApp(MyApp(user.uid, user.email != null ? user.email! : '', true));
     }
   });
 }
 
 class MyApp extends StatelessWidget {
   final String uid;
+  final String userEmail;
   final bool isLoggedIn;
-  const MyApp(this.uid, this.isLoggedIn, {super.key});
+  const MyApp(this.uid, this.userEmail, this.isLoggedIn, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => MyAppState(uid, isLoggedIn),
+      create: (context) => MyAppState(uid, userEmail, isLoggedIn),
       child: MaterialApp(
         title: 'Todo App',
         theme: ThemeData(
@@ -58,10 +65,11 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   String uid;
+  String userEmail;
   bool isDataInitiated = false;
   bool isLoggedIn;
   bool isAppLoading = true;
-  MyAppState(this.uid, this.isLoggedIn);
+  MyAppState(this.uid, this.userEmail, this.isLoggedIn);
   List<TodoItem> items = [];
   late TodoItem myItem;
 
@@ -114,9 +122,11 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  var selectedIndex = 0;
+  int selectedIndex = 0;
+  int oldIndex = 0;
   void _setIndex(int index) {
     setState(() {
+      oldIndex = selectedIndex;
       selectedIndex = index;
     });
   }
@@ -128,14 +138,18 @@ class _MainPageState extends State<MainPage> {
     if (!appState.isDataInitiated) {
       appState.initData();
     }
-    var uid = appState.uid;
-    Widget page;
+    String uid = appState.uid;
+    String email = appState.userEmail;
+    Widget? page;
     switch (selectedIndex) {
       case 0:
         page = ItemListPage(_setIndex, uid);
         break;
       case 1:
         page = NewItemPage(_setIndex);
+        break;
+      case 2:
+        page = LogoutPage(_setIndex, uid, email, oldIndex);
         break;
       default:
         throw UnimplementedError('no widget for $selectedIndex');
@@ -159,6 +173,10 @@ class _MainPageState extends State<MainPage> {
                       NavigationRailDestination(
                         icon: Icon(Icons.add),
                         label: Text('New Todo'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(Icons.logout_outlined),
+                        label: Text('Logout'),
                       ),
                     ],
                     selectedIndex: selectedIndex,
