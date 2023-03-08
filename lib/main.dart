@@ -58,19 +58,20 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   String uid;
+  bool isDataInitiated = false;
   bool isLoggedIn;
   bool isAppLoading = true;
   MyAppState(this.uid, this.isLoggedIn);
   List<TodoItem> items = [];
   late TodoItem myItem;
 
-  String initData() {
+  initData() {
     refreshItems();
     TodoDatabase(uid).itemsRef.onValue.listen((_) {
       setAppLoadingState(true);
       refreshItems();
     });
-    return uid;
+    isDataInitiated = true;
   }
 
   void refreshItems() async {
@@ -124,7 +125,10 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     var appState = context.watch<MyAppState>();
-    var uid = appState.initData();
+    if (!appState.isDataInitiated) {
+      appState.initData();
+    }
+    var uid = appState.uid;
     Widget page;
     switch (selectedIndex) {
       case 0:
