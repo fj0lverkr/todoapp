@@ -5,6 +5,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:todoapp/pages/itemlist.dart';
 import 'package:todoapp/pages/newitem.dart';
 import 'package:todoapp/model/database.dart';
@@ -17,10 +19,17 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  FirebaseAuth.instance.authStateChanges().listen((User? user) {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  FirebaseAuth.instance.authStateChanges().listen((User? user) async {
     if (user == null) {
-      runApp(const MyApp('', false));
+      if (prefs.getString('fb_uid') != null) {
+        runApp(MyApp(prefs.getString('fb_uid')!, true));
+      } else {
+        runApp(const MyApp('', false));
+      }
     } else {
+      await prefs.setString('fb_uid', user.uid);
       runApp(MyApp(user.uid, true));
     }
   });
