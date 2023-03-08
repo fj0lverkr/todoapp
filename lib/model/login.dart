@@ -13,7 +13,12 @@ class TodoLogin {
     try {
       final credential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
-      return LoginResult(true, credential.user?.uid);
+      if (credential.user!.emailVerified) {
+        return LoginResult(true, credential.user?.uid);
+      } else {
+        credential.user?.sendEmailVerification();
+        return LoginResult(false, "Please verify your e-mail first!");
+      }
     } on FirebaseAuthException catch (e) {
       return LoginResult(false, e.message.toString());
     }

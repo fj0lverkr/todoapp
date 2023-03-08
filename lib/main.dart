@@ -28,15 +28,24 @@ void main() async {
         String mail = prefs.getString('fb_userMail') != null
             ? prefs.getString('fb_userMail')!
             : "";
-        runApp(MyApp(prefs.getString('fb_uid')!, mail, true));
+        runApp(MyApp(prefs.getString('fb_uid')!, mail, true, true));
       } else {
-        runApp(const MyApp('', '', false));
+        runApp(const MyApp('', '', false, true));
       }
     } else {
-      await prefs.setString('fb_uid', user.uid);
-      await prefs.setString(
-          'fb_usermail', user.email != null ? user.email! : "");
-      runApp(MyApp(user.uid, user.email != null ? user.email! : '', true));
+      if (user.emailVerified) {
+        await prefs.setString('fb_uid', user.uid);
+        await prefs.setString(
+            'fb_usermail', user.email != null ? user.email! : "");
+        runApp(
+            MyApp(user.uid, user.email != null ? user.email! : '', true, true));
+      } else {
+        prefs.remove('fb_uid');
+        prefs.remove('fb_userMail');
+        user.sendEmailVerification();
+        FirebaseAuth.instance.signOut();
+        //runApp(const MyApp('', '', false, false));
+      }
     }
   });
 }
@@ -45,12 +54,15 @@ class MyApp extends StatelessWidget {
   final String uid;
   final String userEmail;
   final bool isLoggedIn;
-  const MyApp(this.uid, this.userEmail, this.isLoggedIn, {super.key});
+  final bool isMailVerified;
+  const MyApp(this.uid, this.userEmail, this.isLoggedIn, this.isMailVerified,
+      {super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => MyAppState(uid, userEmail, isLoggedIn),
+      create: (context) =>
+          MyAppState(uid, userEmail, isLoggedIn, isMailVerified),
       child: MaterialApp(
         title: 'Todo App',
         theme: ThemeData(
@@ -68,8 +80,9 @@ class MyAppState extends ChangeNotifier {
   String userEmail;
   bool isDataInitiated = false;
   bool isLoggedIn;
+  bool isMailVerified;
   bool isAppLoading = true;
-  MyAppState(this.uid, this.userEmail, this.isLoggedIn);
+  MyAppState(this.uid, this.userEmail, this.isLoggedIn, this.isMailVerified);
   List<TodoItem> items = [];
   late TodoItem myItem;
 
@@ -223,6 +236,8 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
+  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
   late String login;
   late String password;
 
@@ -234,10 +249,12 @@ class _LoginPageState extends State<LoginPage> {
     return await TodoLogin().createUser(email, password);
   }
 
-  void _showSnackbar(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(text),
-    ));
+  void _showSnackbar(String title, {int durationSeconds = 10}) {
+    final snackbar = SnackBar(
+      content: Text(title),
+      duration: Duration(seconds: durationSeconds),
+    );
+    scaffoldMessengerKey.currentState?.showSnackBar(snackbar);
   }
 
   @override
@@ -245,125 +262,134 @@ class _LoginPageState extends State<LoginPage> {
     var theme = Theme.of(context);
     var appState = context.watch<MyAppState>();
     return LayoutBuilder(builder: (context, constraints) {
-      return Scaffold(
-        body: Container(
-          color: theme.colorScheme.background,
-          child: Padding(
-            padding: const EdgeInsets.all(30.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: TextFormField(
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) async {
-                        if (_formKey.currentState != null &&
-                            _formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          LoginResult result = await _doLogin(login, password);
-                          if (result.success) {
-                            appState.isLoggedIn = true;
-                            appState.uid = result.message!;
-                          } else {
-                            _showSnackbar(result.message!);
-                          }
-                        }
-                      },
-                      validator: (String? value) {
-                        return (value == null || value.isEmpty)
-                            ? 'Invalid E-mail address.'
-                            : null;
-                      },
-                      decoration: const InputDecoration(
-                          labelText: 'E-mail address',
-                          icon: Icon(Icons.mail),
-                          hintText: 'Your e-mail.'),
-                      onSaved: (value) => login = value!,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: TextFormField(
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) async {
-                        if (_formKey.currentState != null &&
-                            _formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          LoginResult result = await _doLogin(login, password);
-                          if (result.success) {
-                            appState.isLoggedIn = true;
-                            appState.uid = result.message!;
-                          } else {
-                            _showSnackbar(result.message!);
-                          }
-                        }
-                      },
-                      validator: (String? value) {
-                        return (value == null || value.isEmpty)
-                            ? 'Invalid password.'
-                            : null;
-                      },
-                      onSaved: (newValue) => password = newValue!,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                          labelText: 'Password',
-                          icon: Icon(Icons.password),
-                          hintText: 'Your password.'),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: Row(
-                      children: [
-                        const SizedBox(
-                          width: 35,
-                        ),
-                        ElevatedButton(
-                          child: const Text("Login"),
-                          onPressed: () async {
-                            if (_formKey.currentState != null &&
-                                _formKey.currentState!.validate()) {
-                              _formKey.currentState!.save();
-                              LoginResult result =
-                                  await _doLogin(login, password);
-                              if (result.success) {
-                                appState.isLoggedIn = true;
-                                appState.uid = result.message!;
-                              } else {
-                                _showSnackbar(result.message!);
-                              }
+      if (!appState.isMailVerified) {
+        _showSnackbar("Please verify your e-mail before logging in.",
+            durationSeconds: 30);
+      }
+      return ScaffoldMessenger(
+        key: scaffoldMessengerKey,
+        child: Scaffold(
+          body: Container(
+            color: theme.colorScheme.background,
+            child: Padding(
+              padding: const EdgeInsets.all(30.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: TextFormField(
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) async {
+                          if (_formKey.currentState != null &&
+                              _formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            LoginResult result =
+                                await _doLogin(login, password);
+                            if (result.success) {
+                              appState.isLoggedIn = true;
+                              appState.uid = result.message!;
+                            } else {
+                              _showSnackbar(result.message!);
                             }
-                          },
-                        ),
-                        const SizedBox(
-                          width: 25,
-                        ),
-                        GestureDetector(
-                          onTap: () async {
-                            if (_formKey.currentState != null &&
-                                _formKey.currentState!.validate()) {
-                              _formKey.currentState!.save();
-                              LoginResult result =
-                                  await _doCreateUser(login, password);
-                              if (result.success) {
-                                appState.isLoggedIn = true;
-                                appState.uid = result.message!;
-                              } else {
-                                _showSnackbar(result.message!);
-                              }
-                            }
-                          },
-                          child: const Text('create account'),
-                        )
-                      ],
+                          }
+                        },
+                        validator: (String? value) {
+                          return (value == null || value.isEmpty)
+                              ? 'Invalid E-mail address.'
+                              : null;
+                        },
+                        decoration: const InputDecoration(
+                            labelText: 'E-mail address',
+                            icon: Icon(Icons.mail),
+                            hintText: 'Your e-mail.'),
+                        onSaved: (value) => login = value!,
+                      ),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: TextFormField(
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) async {
+                          if (_formKey.currentState != null &&
+                              _formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            LoginResult result =
+                                await _doLogin(login, password);
+                            if (result.success) {
+                              appState.isLoggedIn = true;
+                              appState.uid = result.message!;
+                            } else {
+                              _showSnackbar(result.message!);
+                            }
+                          }
+                        },
+                        validator: (String? value) {
+                          return (value == null || value.isEmpty)
+                              ? 'Invalid password.'
+                              : null;
+                        },
+                        onSaved: (newValue) => password = newValue!,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                            labelText: 'Password',
+                            icon: Icon(Icons.password),
+                            hintText: 'Your password.'),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: Row(
+                        children: [
+                          const SizedBox(
+                            width: 35,
+                          ),
+                          ElevatedButton(
+                            child: const Text("Login"),
+                            onPressed: () async {
+                              if (_formKey.currentState != null &&
+                                  _formKey.currentState!.validate()) {
+                                _formKey.currentState!.save();
+                                LoginResult result =
+                                    await _doLogin(login, password);
+                                if (result.success) {
+                                  appState.isLoggedIn = true;
+                                  appState.uid = result.message!;
+                                } else {
+                                  _showSnackbar(result.message!);
+                                }
+                              }
+                            },
+                          ),
+                          const SizedBox(
+                            width: 25,
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              if (_formKey.currentState != null &&
+                                  _formKey.currentState!.validate()) {
+                                _formKey.currentState!.save();
+                                LoginResult result =
+                                    await _doCreateUser(login, password);
+                                if (result.success) {
+                                  appState.isLoggedIn = true;
+                                  appState.uid = result.message!;
+                                } else {
+                                  _showSnackbar(result.message!);
+                                }
+                              }
+                            },
+                            child: const Text('create account'),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
