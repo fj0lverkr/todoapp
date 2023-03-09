@@ -24,10 +24,13 @@ class TodoLogin {
     }
   }
 
-  Future<LoginResult> createUser(String email, String password) async {
+  Future<LoginResult> createUser(
+      String email, String password, String displayName) async {
     try {
-      await FirebaseAuth.instance
+      UserCredential credential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
+      displayName = displayName == "" ? email : displayName;
+      credential.user?.updateDisplayName(displayName);
       return LoginResult(false,
           "An e-mail verification message has been sent to your address.");
     } on FirebaseAuthException catch (e) {

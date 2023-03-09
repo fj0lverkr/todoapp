@@ -18,14 +18,13 @@ class LogoutPage extends StatelessWidget {
   Future<void> doLogout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.remove('fb_uid');
-    prefs.remove('fb_userMail');
+    prefs.remove('fb_display');
     FirebaseAuth.instance.signOut();
   }
 
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    var appState = context.watch<MyAppState>();
     var style = theme.textTheme.titleLarge!.copyWith(
       color: theme.colorScheme.primary,
     );

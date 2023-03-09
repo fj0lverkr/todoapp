@@ -25,8 +25,8 @@ void main() async {
   FirebaseAuth.instance.authStateChanges().listen((User? user) async {
     if (user == null) {
       if (prefs.getString('fb_uid') != null) {
-        String mail = prefs.getString('fb_userMail') != null
-            ? prefs.getString('fb_userMail')!
+        String mail = prefs.getString('fb_display') != null
+            ? prefs.getString('fb_display')!
             : "";
         runApp(MyApp(prefs.getString('fb_uid')!, mail, true, true));
       } else {
@@ -36,12 +36,12 @@ void main() async {
       if (user.emailVerified) {
         await prefs.setString('fb_uid', user.uid);
         await prefs.setString(
-            'fb_usermail', user.email != null ? user.email! : "");
+            'fb_display', user.email != null ? user.email! : "");
         runApp(
             MyApp(user.uid, user.email != null ? user.email! : '', true, true));
       } else {
         prefs.remove('fb_uid');
-        prefs.remove('fb_userMail');
+        prefs.remove('fb_display');
         FirebaseAuth.instance.signOut();
         runApp(const MyApp('', '', false, false));
       }

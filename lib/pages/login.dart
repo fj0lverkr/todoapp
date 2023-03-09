@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:todoapp/main.dart';
 import 'package:todoapp/model/login.dart';
 
+void closePopup(BuildContext context) {
+  Navigator.of(context).pop();
+}
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -22,8 +26,13 @@ class _LoginPageState extends State<LoginPage> {
     return await TodoLogin().signInWithEmailAndPassword(email, password);
   }
 
-  Future<LoginResult> _doCreateUser(String email, String password) async {
-    return await TodoLogin().createUser(email, password);
+  void _doCreateUser(String email, String password, String displayName) async {
+    LoginResult result =
+        await TodoLogin().createUser(email, password, displayName);
+    if (!result.success) {
+      // TODO send verification mail
+    }
+    _showSnackbar(result.message!);
   }
 
   void _showSnackbar(String title, {int durationSeconds = 10}) {
@@ -147,21 +156,25 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           GestureDetector(
                             onTap: () async {
-                              if (_formKey.currentState != null &&
-                                  _formKey.currentState!.validate()) {
-                                _formKey.currentState!.save();
-                                LoginResult result =
-                                    await _doCreateUser(login, password);
-                                if (result.success) {
-                                  appState.isLoggedIn = true;
-                                  appState.uid = result.message!;
-                                } else {
-                                  _showSnackbar(result.message!);
-                                }
-                              }
+                              await showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) =>
+                                      _buildPopupDialog(
+                                          context, _doCreateUser));
                             },
                             child: const Text('create account'),
-                          )
+                          ),
+                          const SizedBox(
+                            width: 25,
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              /* TODO
+                              help restore password, possibly different sprint.
+                              */
+                            },
+                            child: const Text('forgot password'),
+                          ),
                         ],
                       ),
                     ),
@@ -174,4 +187,112 @@ class _LoginPageState extends State<LoginPage> {
       );
     });
   }
+}
+
+Widget _buildPopupDialog(BuildContext context, Function doCreateUser) {
+  final formKey = GlobalKey<FormState>();
+  late String login;
+  late String password;
+  late String displayName;
+  return AlertDialog(
+    title: const Text("Create new account"),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Form(
+          key: formKey,
+          child: Column(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: TextFormField(
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) async {
+                    if (formKey.currentState != null &&
+                        formKey.currentState!.validate()) {
+                      formKey.currentState!.save();
+                    }
+                  },
+                  validator: (String? value) {
+                    return (value == null || value.isEmpty)
+                        ? 'Invalid E-mail address.'
+                        : null;
+                  },
+                  decoration: const InputDecoration(
+                      labelText: 'E-mail address',
+                      icon: Icon(Icons.mail),
+                      hintText: 'Your e-mail.'),
+                  onSaved: (value) => login = value!,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: TextFormField(
+                  obscureText: true,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) async {
+                    if (formKey.currentState != null &&
+                        formKey.currentState!.validate()) {
+                      formKey.currentState!.save();
+                    }
+                  },
+                  validator: (String? value) {
+                    return (value == null || value.isEmpty)
+                        ? 'Invalid password.'
+                        : null;
+                  },
+                  onSaved: (newValue) => password = newValue!,
+                  decoration: const InputDecoration(
+                      labelText: 'Password',
+                      icon: Icon(Icons.password),
+                      hintText: 'Your password.'),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: TextFormField(
+                  validator: (String? value) {
+                    return (value == null || value.isEmpty)
+                        ? 'Invalid display name.'
+                        : null;
+                  },
+                  onSaved: (newValue) => displayName = newValue!,
+                  decoration: const InputDecoration(
+                      labelText: 'Display name',
+                      icon: Icon(Icons.person_2_outlined),
+                      hintText: 'Your desired display name.'),
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+    actions: <Widget>[
+      ElevatedButton(
+        child: const Text("Create account"),
+        onPressed: () {
+          if (formKey.currentState != null &&
+              formKey.currentState!.validate()) {
+            formKey.currentState!.save();
+            doCreateUser(login, password, displayName);
+            closePopup(context);
+          }
+        },
+      ),
+      const SizedBox(
+        width: 25,
+      ),
+      ElevatedButton(
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+        child: const Text('Close'),
+      ),
+    ],
+  );
 }
