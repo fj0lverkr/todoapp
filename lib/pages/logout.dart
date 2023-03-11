@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'package:todoapp/main.dart';
 import 'package:todoapp/widgets/titlecard.dart';
 
 class LogoutPage extends StatelessWidget {
   final Function _setIndex;
   final String uid;
   final String email;
-  final int fromIndex;
-  const LogoutPage(this._setIndex, this.uid, this.email, this.fromIndex,
-      {super.key});
+  const LogoutPage(this._setIndex, this.uid, this.email, {super.key});
 
   Future<void> doLogout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -68,7 +64,7 @@ class LogoutPage extends StatelessWidget {
                       ElevatedButton(
                         child: const Text("No"),
                         onPressed: () {
-                          _setIndex(fromIndex);
+                          _setIndex(0);
                         },
                       ),
                     ],

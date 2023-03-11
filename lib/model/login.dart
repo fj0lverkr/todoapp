@@ -8,16 +8,25 @@ class LoginResult {
 }
 
 class TodoLogin {
-  Future<LoginResult> signInWithEmailAndPassword(
-      String email, String password) async {
+  Future<LoginResult> signInWithEmailAndPassword(String email, String password,
+      [bool isFromCreate = false, String? displayName]) async {
     try {
       final credential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
       if (credential.user!.emailVerified) {
         return LoginResult(true, credential.user?.uid);
       } else {
-        await credential.user?.sendEmailVerification();
-        return LoginResult(false, "Please verify your e-mail first!");
+        if (isFromCreate && displayName != null && displayName.isNotEmpty) {
+          await FirebaseAuth.instance
+              .signInWithEmailAndPassword(email: email, password: password)
+              .then((cred) => cred.user!.updateDisplayName(displayName));
+        }
+        await FirebaseAuth.instance
+            .signInWithEmailAndPassword(email: email, password: password)
+            .then((cred) => cred.user!.sendEmailVerification());
+        FirebaseAuth.instance.signOut();
+        return LoginResult(false,
+            "An e-mail verification message has been sent to your address.");
       }
     } on FirebaseAuthException catch (e) {
       return LoginResult(false, e.message.toString());
@@ -27,12 +36,10 @@ class TodoLogin {
   Future<LoginResult> createUser(
       String email, String password, String displayName) async {
     try {
-      UserCredential credential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
       displayName = displayName == "" ? email : displayName;
-      credential.user?.updateDisplayName(displayName);
-      return LoginResult(false,
-          "An e-mail verification message has been sent to your address.");
+      await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+      return signInWithEmailAndPassword(email, password, true, displayName);
     } on FirebaseAuthException catch (e) {
       return LoginResult(false, e.message.toString());
     }

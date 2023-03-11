@@ -25,10 +25,10 @@ void main() async {
   FirebaseAuth.instance.authStateChanges().listen((User? user) async {
     if (user == null) {
       if (prefs.getString('fb_uid') != null) {
-        String mail = prefs.getString('fb_display') != null
+        String displayName = prefs.getString('fb_display') != null
             ? prefs.getString('fb_display')!
             : "";
-        runApp(MyApp(prefs.getString('fb_uid')!, mail, true, true));
+        runApp(MyApp(prefs.getString('fb_uid')!, displayName, true, true));
       } else {
         runApp(const MyApp('', '', false, true));
       }
@@ -36,9 +36,9 @@ void main() async {
       if (user.emailVerified) {
         await prefs.setString('fb_uid', user.uid);
         await prefs.setString(
-            'fb_display', user.email != null ? user.email! : "");
-        runApp(
-            MyApp(user.uid, user.email != null ? user.email! : '', true, true));
+            'fb_display', user.displayName != null ? user.displayName! : "");
+        runApp(MyApp(user.uid,
+            user.displayName != null ? user.displayName! : '', true, true));
       } else {
         prefs.remove('fb_uid');
         prefs.remove('fb_display');
@@ -51,17 +51,18 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final String uid;
-  final String userEmail;
+  final String userDisplayName;
   final bool isLoggedIn;
   final bool isMailVerified;
-  const MyApp(this.uid, this.userEmail, this.isLoggedIn, this.isMailVerified,
+  const MyApp(
+      this.uid, this.userDisplayName, this.isLoggedIn, this.isMailVerified,
       {super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) =>
-          MyAppState(uid, userEmail, isLoggedIn, isMailVerified),
+          MyAppState(uid, userDisplayName, isLoggedIn, isMailVerified),
       child: MaterialApp(
         title: 'Todo App',
         theme: ThemeData(
@@ -76,12 +77,13 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   String uid;
-  String userEmail;
+  String userDisplayName;
   bool isDataInitiated = false;
   bool isLoggedIn;
   bool isMailVerified;
   bool isAppLoading = true;
-  MyAppState(this.uid, this.userEmail, this.isLoggedIn, this.isMailVerified);
+  MyAppState(
+      this.uid, this.userDisplayName, this.isLoggedIn, this.isMailVerified);
   List<TodoItem> items = [];
   late TodoItem myItem;
 
@@ -135,10 +137,8 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int selectedIndex = 0;
-  int oldIndex = 0;
   void _setIndex(int index) {
     setState(() {
-      oldIndex = selectedIndex;
       selectedIndex = index;
     });
   }
@@ -151,7 +151,7 @@ class _MainPageState extends State<MainPage> {
       appState.initData();
     }
     String uid = appState.uid;
-    String email = appState.userEmail;
+    String displayName = appState.userDisplayName;
     Widget? page;
     switch (selectedIndex) {
       case 0:
@@ -161,7 +161,7 @@ class _MainPageState extends State<MainPage> {
         page = NewItemPage(_setIndex);
         break;
       case 2:
-        page = LogoutPage(_setIndex, uid, email, oldIndex);
+        page = LogoutPage(_setIndex, uid, displayName);
         break;
       default:
         throw UnimplementedError('no widget for $selectedIndex');
