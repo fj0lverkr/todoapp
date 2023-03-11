@@ -42,7 +42,6 @@ void main() async {
       } else {
         prefs.remove('fb_uid');
         prefs.remove('fb_display');
-        FirebaseAuth.instance.signOut();
         runApp(const MyApp('', '', false, false));
       }
     }

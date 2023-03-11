@@ -51,12 +51,15 @@ class _LoginPageState extends State<LoginPage> {
         key: scaffoldMessengerKey,
         child: Scaffold(
           body: Container(
+            width: double.infinity,
+            height: double.infinity,
             color: theme.colorScheme.background,
             child: Padding(
               padding: const EdgeInsets.all(30.0),
               child: Form(
                 key: _formKey,
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Padding(
                       padding: const EdgeInsets.all(6.0),

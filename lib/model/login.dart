@@ -8,6 +8,17 @@ class LoginResult {
 }
 
 class TodoLogin {
+  Future<void> _setDisplayName(
+      String name, String email, String password) async {
+    try {
+      final credential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+      await credential.user!.updateDisplayName(name);
+    } on FirebaseException catch (e) {
+      print(e.message.toString());
+    }
+  }
+
   Future<LoginResult> signInWithEmailAndPassword(String email, String password,
       [bool isFromCreate = false, String? displayName]) async {
     try {
@@ -17,14 +28,10 @@ class TodoLogin {
         return LoginResult(true, credential.user?.uid);
       } else {
         if (isFromCreate && displayName != null && displayName.isNotEmpty) {
-          await FirebaseAuth.instance
-              .signInWithEmailAndPassword(email: email, password: password)
-              .then((cred) => cred.user!.updateDisplayName(displayName));
+          await _setDisplayName(displayName, email, password);
         }
-        await FirebaseAuth.instance
-            .signInWithEmailAndPassword(email: email, password: password)
-            .then((cred) => cred.user!.sendEmailVerification());
-        FirebaseAuth.instance.signOut();
+        await credential.user!.sendEmailVerification();
+        //FirebaseAuth.instance.signOut();
         return LoginResult(false,
             "An e-mail verification message has been sent to your address.");
       }
@@ -39,7 +46,10 @@ class TodoLogin {
       displayName = displayName == "" ? email : displayName;
       await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
-      return signInWithEmailAndPassword(email, password, true, displayName);
+      LoginResult result =
+          await signInWithEmailAndPassword(email, password, true, displayName);
+      FirebaseAuth.instance.signOut();
+      return result;
     } on FirebaseAuthException catch (e) {
       return LoginResult(false, e.message.toString());
     }
