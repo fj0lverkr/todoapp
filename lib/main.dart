@@ -175,6 +175,10 @@ class _MainPageState extends State<MainPage> {
                   child: NavigationRail(
                     backgroundColor: theme.colorScheme.secondaryContainer,
                     extended: constraints.maxWidth >= 600,
+                    leading: Image.asset(
+                      "assets/images/logo-bw.png",
+                      width: 55,
+                    ),
                     destinations: const [
                       NavigationRailDestination(
                         icon: Icon(Icons.list),
