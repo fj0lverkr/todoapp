@@ -61,6 +61,13 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
+                    Image.asset(
+                      "assets/images/logo-color.png",
+                      height: 250,
+                    ),
+                    const SizedBox(
+                      height: 60,
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(6.0),
                       child: TextFormField(
