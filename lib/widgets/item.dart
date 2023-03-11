@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:todoapp/main.dart';
@@ -15,7 +14,6 @@ class ItemWidget extends StatelessWidget {
 
   final TodoItem item;
   final String uid;
-
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
@@ -87,7 +85,7 @@ class ItemWidget extends StatelessWidget {
                     : const Icon(Icons.circle_outlined),
             title: Text(
                 item.expires != null
-                    ? "${item.title} (do by ${DateFormat.yMMMd().format(item.expires!)})"
+                    ? "${item.title} (${appState.formatDate(item.expires!, 'en_GB', false)})"
                     : item.title,
                 style: item.done ? itemTitleDoneStyle : itemTitleStyle),
             subtitle: (item.description != null && item.description != "")
@@ -117,14 +115,29 @@ Widget _buildPopupDialog(
     BuildContext context, TodoItem item, MyAppState appState, String uid) {
   return AlertDialog(
     title: Text(item.title),
+    titlePadding: const EdgeInsets.fromLTRB(20, 20, 0, 0),
+    contentPadding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+    actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+    actionsAlignment: MainAxisAlignment.spaceBetween,
     content: Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          item.isShared ? "Item by ${item.ownerDisplayName}" : "Private item",
+          style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+        ),
+        const SizedBox(
+          height: 15,
+        ),
         Text(item.description != null ? item.description! : ''),
-        Text(item.expires != null
-            ? 'Expires: ${DateFormat.yMMMd().format(item.expires!)}'
-            : ''),
+        const SizedBox(height: 25),
+        Text(
+          item.expires != null
+              ? 'Expires: ${appState.formatDate(item.expires!, 'en_GB', true)}'
+              : 'Does not expire.',
+          style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+        ),
       ],
     ),
     actions: <Widget>[

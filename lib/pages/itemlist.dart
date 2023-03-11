@@ -14,6 +14,8 @@ class ItemListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     var appState = context.watch<MyAppState>();
+    String udn = appState.userDisplayName;
+    String owningUser = udn.endsWith('s') ? "$udn'" : "$udn's";
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
       body: Padding(
@@ -26,7 +28,7 @@ class ItemListPage extends StatelessWidget {
             Flexible(
               child: ListView(
                 children: [
-                  TitleCard('Todo Items:', theme: theme),
+                  TitleCard('$owningUser to-do list:', theme: theme),
                   if (appState.items.isEmpty) ...[
                     const ListTile(
                       title: Text('No items yet...'),

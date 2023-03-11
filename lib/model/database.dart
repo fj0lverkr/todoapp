@@ -20,7 +20,9 @@ class TodoDatabase {
       "description": item.description,
       "created": DateFormat.yMMMd().format(item.created),
       "expires": expires,
-      "done": item.done
+      "done": item.done,
+      "owner": item.owner,
+      "ownerDisplayName": item.ownerDisplayName
     });
   }
 

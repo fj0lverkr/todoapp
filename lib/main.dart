@@ -7,6 +7,9 @@ import 'firebase_options.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
 import 'package:todoapp/pages/itemlist.dart';
 import 'package:todoapp/pages/newitem.dart';
 import 'package:todoapp/pages/login.dart';
@@ -123,6 +126,14 @@ class MyAppState extends ChangeNotifier {
   void setAppLoadingState(bool isLoading) {
     isAppLoading = isLoading;
     notifyListeners();
+  }
+
+  String formatDate(DateTime date, String locale, bool doLongFormat) {
+    initializeDateFormatting(locale, null);
+    String formattedDate = doLongFormat
+        ? DateFormat.yMMMMd(locale).format(date)
+        : DateFormat.yMd(locale).format(date);
+    return formattedDate;
   }
 }
 
