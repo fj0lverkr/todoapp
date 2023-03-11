@@ -8,8 +8,8 @@ import 'package:todoapp/widgets/titlecard.dart';
 class LogoutPage extends StatelessWidget {
   final Function _setIndex;
   final String uid;
-  final String email;
-  const LogoutPage(this._setIndex, this.uid, this.email, {super.key});
+  final String displayName;
+  const LogoutPage(this._setIndex, this.uid, this.displayName, {super.key});
 
   Future<void> doLogout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -43,7 +43,7 @@ class LogoutPage extends StatelessWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 2, 20, 10),
-                  child: Text('Currently logged in as $email.'),
+                  child: Text('Currently logged in as $displayName.'),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(6.0),

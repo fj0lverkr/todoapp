@@ -38,7 +38,7 @@ void main() async {
         await prefs.setString(
             'fb_display', user.displayName != null ? user.displayName! : "");
         runApp(MyApp(user.uid,
-            user.displayName != null ? user.displayName! : '', true, true));
+            user.displayName != null ? user.displayName! : "", true, true));
       } else {
         prefs.remove('fb_uid');
         prefs.remove('fb_display');
@@ -68,7 +68,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
         ),
-        home: isLoggedIn ? MainPage(uid) : const LoginPage(),
+        home: isLoggedIn ? const MainPage() : const LoginPage(),
       ),
     );
   }
@@ -127,8 +127,7 @@ class MyAppState extends ChangeNotifier {
 }
 
 class MainPage extends StatefulWidget {
-  final String uid;
-  const MainPage(this.uid, {super.key});
+  const MainPage({super.key});
 
   @override
   State<MainPage> createState() => _MainPageState();
