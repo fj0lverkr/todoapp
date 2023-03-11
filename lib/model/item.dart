@@ -10,13 +10,16 @@ class TodoItem {
   DateTime? expires;
   bool done = false;
   bool isShared;
+  String owner;
+  String ownerDisplayName;
 
-  TodoItem(this.id, this.title,
+  TodoItem(this.id, this.title, this.owner, this.ownerDisplayName,
       {this.description, this.expires, this.isShared = false});
 
   factory TodoItem.fromJson(dynamic json) {
     json = jsonDecode(json);
-    var item = TodoItem(json['id'], json['title']);
+    var item = TodoItem(
+        json['id'], json['title'], json['owner'], json['ownerDisplayName']);
     String? description = json['description'] as String?;
     DateTime created = DateFormat.yMMMd().parse(json['created'] as String);
     bool done = json['done'] as bool;
@@ -32,7 +35,6 @@ class TodoItem {
     if (expires != null && expires.isNotEmpty) {
       item.expires = DateFormat.yMMMd().parse(expires);
     }
-
     return item;
   }
 }

@@ -50,8 +50,11 @@ class _NewItemPageState extends State<NewItemPage> {
                       labelText: 'Title*',
                       icon: Icon(Icons.title),
                       hintText: 'Enter a title for your item.'),
-                  onSaved: (value) =>
-                      appState.myItem = TodoItem(const Uuid().v4(), value!),
+                  onSaved: (value) => appState.myItem = TodoItem(
+                      const Uuid().v4(),
+                      value!,
+                      appState.uid,
+                      appState.userDisplayName),
                 ),
               ),
               Padding(
