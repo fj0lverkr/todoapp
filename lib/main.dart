@@ -16,12 +16,15 @@ import 'package:todoapp/pages/login.dart';
 import 'package:todoapp/pages/logout.dart';
 import 'package:todoapp/model/database.dart';
 import 'package:todoapp/model/item.dart';
+import 'package:todoapp/util/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await NotificationService().init();
+  await NotificationService().requestIOSPermissions();
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -101,6 +104,22 @@ class MyAppState extends ChangeNotifier {
   void refreshItems() async {
     items = await TodoDatabase(uid).getAllItems();
     items.sort((a, b) => a.created.compareTo(b.created));
+    for (TodoItem item in items) {
+      if (item.expires != null && !item.done) {
+        final DateTime now = DateTime.now();
+        final NotificationService notificationService = NotificationService();
+        if (now.isBefore(item.expires!)) {
+          await notificationService.scheduleNotifications(
+              id: item.id,
+              body:
+                  "This item expires on ${formatDate(item.expires!, 'en_GB', true)}.",
+              title: "TodoApp reminder: ${item.title}",
+              time: DateTime.now().add(const Duration(
+                  seconds:
+                      20))); //TODO: make this use the items expiration date.
+        }
+      }
+    }
     setAppLoadingState(false);
   }
 
