@@ -47,6 +47,7 @@ dependencies:
   flutter_local_notifications: ^8.2.0
   timezone: ^0.8.0
   flutter_cupertino_datetime_picker: ^3.0.0
+  permission_handler: ^10.2.0
 
 dev_dependencies:
   flutter_test:

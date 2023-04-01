@@ -17,9 +17,15 @@ import 'package:todoapp/pages/logout.dart';
 import 'package:todoapp/model/database.dart';
 import 'package:todoapp/model/item.dart';
 import 'package:todoapp/util/notification_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Permission.notification.isDenied.then((value) {
+    if (value) {
+      Permission.notification.request();
+    }
+  });
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -113,19 +119,19 @@ class MyAppState extends ChangeNotifier {
     TodoDatabase(location).createItem(myItem);
   }
 
-  void setItemDone(TodoItem item, bool done) async {
+  void setItemDone(TodoItem item, bool done) {
     setAppLoadingState(true);
     if (done) {
       final NotificationService notificationService = NotificationService();
-      await notificationService.clearScheduledNotificationForItem(item.id);
+      notificationService.clearScheduledNotificationForItem(item.id);
     }
     TodoDatabase(uid).toggleItemDone(item, done);
   }
 
-  void deleteItem(TodoItem item) async {
+  void deleteItem(TodoItem item) {
     setAppLoadingState(true);
     final NotificationService notificationService = NotificationService();
-    await notificationService.clearScheduledNotificationForItem(item.id);
+    notificationService.clearScheduledNotificationForItem(item.id);
     TodoDatabase(uid).deleteItem(item);
   }
 
