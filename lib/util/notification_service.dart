@@ -66,26 +66,56 @@ class NotificationService {
 
   Future<void> scheduleNotifications({id, title, body, time}) async {
     try {
-      String idAsString = "";
-      int idAsInt = 0;
-      List<int> bytes = utf8.encode(id);
-      for (int i in bytes) {
-        idAsString += i.toString();
+      bool skip = false;
+      int idAsInt = getNotificationIdForItem(id);
+      List<PendingNotificationRequest> pending =
+          await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+      for (var p in pending) {
+        if (p.id == idAsInt) {
+          if (p.title == title && p.body == body) {
+            skip = true;
+          } else {
+            await flutterLocalNotificationsPlugin.cancel(p.id);
+          }
+        }
       }
-      idAsInt = int.tryParse(idAsString.substring(0, 9))!;
-      await flutterLocalNotificationsPlugin.zonedSchedule(
-          idAsInt,
-          title,
-          body,
-          tz.TZDateTime.from(time, tz.local),
-          const NotificationDetails(
-              android: AndroidNotificationDetails(c.NOTIFICATION_CHANNEL_ID,
-                  c.NOTIFICATION_CHANNEL_NAME, c.NOTIFICATION_CHANNEL_DESC)),
-          androidAllowWhileIdle: true,
-          uiLocalNotificationDateInterpretation:
-              UILocalNotificationDateInterpretation.absoluteTime);
+      if (!skip) {
+        await flutterLocalNotificationsPlugin.zonedSchedule(
+            idAsInt,
+            title,
+            body,
+            tz.TZDateTime.from(time, tz.local),
+            const NotificationDetails(
+                android: AndroidNotificationDetails(c.NOTIFICATION_CHANNEL_ID,
+                    c.NOTIFICATION_CHANNEL_NAME, c.NOTIFICATION_CHANNEL_DESC)),
+            androidAllowWhileIdle: true,
+            uiLocalNotificationDateInterpretation:
+                UILocalNotificationDateInterpretation.absoluteTime);
+      }
     } catch (e) {
       print(e);
     }
+  }
+
+  Future<void> clearScheduledNotifications() async {
+    List<PendingNotificationRequest> pending =
+        await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+    for (var p in pending) {
+      await flutterLocalNotificationsPlugin.cancel(p.id);
+    }
+  }
+
+  Future<void> clearScheduledNotificationForItem(String itemId) async {
+    int id = getNotificationIdForItem(itemId);
+    await flutterLocalNotificationsPlugin.cancel(id);
+  }
+
+  int getNotificationIdForItem(String itemId) {
+    String idAsString = "";
+    List<int> bytes = utf8.encode(itemId);
+    for (int i in bytes) {
+      idAsString += i.toString();
+    }
+    return int.tryParse(idAsString.substring(0, 9))!;
   }
 }
