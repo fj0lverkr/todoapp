@@ -61,12 +61,13 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Image.asset(
-                      "assets/images/logo-color.png",
-                      height: 250,
+                    Expanded(
+                      child: Image.asset(
+                        "assets/images/logo-color_300.png",
+                      ),
                     ),
                     const SizedBox(
-                      height: 60,
+                      height: 30,
                     ),
                     Padding(
                       padding: const EdgeInsets.all(6.0),
@@ -151,10 +152,8 @@ class _LoginPageState extends State<LoginPage> {
                     Padding(
                       padding: const EdgeInsets.all(6.0),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const SizedBox(
-                            width: 35,
-                          ),
                           ElevatedButton(
                             child: const Text("Login"),
                             onPressed: () async {
@@ -173,7 +172,7 @@ class _LoginPageState extends State<LoginPage> {
                             },
                           ),
                           const SizedBox(
-                            width: 25,
+                            width: 35,
                           ),
                           GestureDetector(
                             onTap: () async {
@@ -184,11 +183,17 @@ class _LoginPageState extends State<LoginPage> {
                             },
                             child: const Text('create account'),
                           ),
-                          const SizedBox(
-                            width: 25,
-                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                           GestureDetector(
                             onTap: () {
+                              _showSnackbar("to be implemented...");
                               /* TODO
                               help restore password, possibly different sprint.
                               */
@@ -243,118 +248,112 @@ class _BuildPopupDialog extends State<BuildPopupDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Create new account"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Form(
-            key: _formKey,
-            child: Column(
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(6.0),
-                  child: TextFormField(
-                    validator: (String? value) {
-                      return (value == null || value.isEmpty)
-                          ? 'Invalid E-mail address.'
-                          : null;
-                    },
-                    decoration: const InputDecoration(
-                        labelText: 'E-mail address',
-                        icon: Icon(Icons.mail),
-                        hintText: 'Your e-mail.'),
-                    onSaved: (value) => login = value!,
-                  ),
+      title: const Text("Create account"),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: TextFormField(
+                  validator: (String? value) {
+                    return (value == null || value.isEmpty)
+                        ? 'Invalid E-mail address.'
+                        : null;
+                  },
+                  decoration: const InputDecoration(
+                      labelText: 'E-mail address',
+                      icon: Icon(Icons.mail),
+                      hintText: 'Your e-mail.'),
+                  onSaved: (value) => login = value!,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(6.0),
-                  child: TextFormField(
-                    obscureText: !_newPasswordVisible,
-                    onChanged: (value) => password = value,
-                    validator: (String? value) {
-                      return (value == null || value.isEmpty)
-                          ? 'Invalid password.'
-                          : null;
-                    },
-                    onSaved: (newValue) => password = newValue!,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      icon: const Icon(Icons.password),
-                      hintText: 'Your password.',
-                      suffixIcon: IconButton(
-                        iconSize: 16,
-                        focusNode: FocusNode(skipTraversal: true),
-                        icon: Icon(
-                          _newPasswordVisible
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Theme.of(context).primaryColorDark,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _newPasswordVisible = !_newPasswordVisible;
-                          });
-                        },
+              ),
+              Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: TextFormField(
+                  obscureText: !_newPasswordVisible,
+                  onChanged: (value) => password = value,
+                  validator: (String? value) {
+                    return (value == null || value.isEmpty)
+                        ? 'Invalid password.'
+                        : null;
+                  },
+                  onSaved: (newValue) => password = newValue!,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    icon: const Icon(Icons.password),
+                    hintText: 'Your password.',
+                    suffixIcon: IconButton(
+                      iconSize: 16,
+                      focusNode: FocusNode(skipTraversal: true),
+                      icon: Icon(
+                        _newPasswordVisible
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: Theme.of(context).primaryColorDark,
                       ),
+                      onPressed: () {
+                        setState(() {
+                          _newPasswordVisible = !_newPasswordVisible;
+                        });
+                      },
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(6.0),
-                  child: TextFormField(
-                    obscureText: !_confirmPasswordVisible,
-                    validator: (String? value) {
-                      return (value == null ||
-                              value.isEmpty ||
-                              value != password)
-                          ? 'Passwords must match.'
-                          : null;
-                    },
-                    decoration: InputDecoration(
-                      labelText: 'Confirm password',
-                      icon: const Icon(Icons.verified_user),
-                      hintText: 'Re-type your password.',
-                      suffixIcon: IconButton(
-                        iconSize: 16,
-                        focusNode: FocusNode(skipTraversal: true),
-                        icon: Icon(
-                          _confirmPasswordVisible
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Theme.of(context).primaryColorDark,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _confirmPasswordVisible = !_confirmPasswordVisible;
-                          });
-                        },
+              ),
+              Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: TextFormField(
+                  obscureText: !_confirmPasswordVisible,
+                  validator: (String? value) {
+                    return (value == null || value.isEmpty || value != password)
+                        ? 'Passwords must match.'
+                        : null;
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Confirm password',
+                    icon: const Icon(Icons.verified_user),
+                    hintText: 'Re-type your password.',
+                    suffixIcon: IconButton(
+                      iconSize: 16,
+                      focusNode: FocusNode(skipTraversal: true),
+                      icon: Icon(
+                        _confirmPasswordVisible
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: Theme.of(context).primaryColorDark,
                       ),
+                      onPressed: () {
+                        setState(() {
+                          _confirmPasswordVisible = !_confirmPasswordVisible;
+                        });
+                      },
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(6.0),
-                  child: TextFormField(
-                    validator: (String? value) {
-                      return (value == null || value.isEmpty)
-                          ? 'Invalid display name.'
-                          : null;
-                    },
-                    onSaved: (newValue) => displayName = newValue!,
-                    decoration: const InputDecoration(
-                        labelText: 'Display name',
-                        icon: Icon(Icons.person_2_outlined),
-                        hintText: 'Your desired display name.'),
-                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: TextFormField(
+                  validator: (String? value) {
+                    return (value == null || value.isEmpty)
+                        ? 'Invalid display name.'
+                        : null;
+                  },
+                  onSaved: (newValue) => displayName = newValue!,
+                  decoration: const InputDecoration(
+                      labelText: 'Display name',
+                      icon: Icon(Icons.person_2_outlined),
+                      hintText: 'Your desired display name.'),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+            ],
           ),
-        ],
+        ),
       ),
       actions: <Widget>[
         ElevatedButton(
