@@ -16,24 +16,13 @@ class NotificationService {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    //Initialization Settings for iOS
-    const IOSInitializationSettings initializationSettingsIOS =
-        IOSInitializationSettings(
-      requestSoundPermission: false,
-      requestBadgePermission: false,
-      requestAlertPermission: false,
-    );
-
     //Initializing settings for both platforms (Android & iOS)
     const InitializationSettings initializationSettings =
-        InitializationSettings(
-            android: initializationSettingsAndroid,
-            iOS: initializationSettingsIOS);
+        InitializationSettings(android: initializationSettingsAndroid);
 
     tz.initializeTimeZones();
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: onSelectNotification);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
   Future<dynamic> onSelectNotification(String? payload) async {
@@ -53,8 +42,8 @@ class NotificationService {
 
   Future<void> showNotifications({id, title, body, payload}) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(c.NOTIFICATION_CHANNEL_ID,
-            c.NOTIFICATION_CHANNEL_NAME, c.NOTIFICATION_CHANNEL_DESC,
+        AndroidNotificationDetails(
+            c.NOTIFICATION_CHANNEL_ID, c.NOTIFICATION_CHANNEL_NAME,
             importance: Importance.max,
             priority: Priority.high,
             ticker: 'ticker');
@@ -86,8 +75,8 @@ class NotificationService {
             body,
             tz.TZDateTime.from(time, tz.local),
             const NotificationDetails(
-                android: AndroidNotificationDetails(c.NOTIFICATION_CHANNEL_ID,
-                    c.NOTIFICATION_CHANNEL_NAME, c.NOTIFICATION_CHANNEL_DESC)),
+                android: AndroidNotificationDetails(
+                    c.NOTIFICATION_CHANNEL_ID, c.NOTIFICATION_CHANNEL_NAME)),
             androidAllowWhileIdle: true,
             uiLocalNotificationDateInterpretation:
                 UILocalNotificationDateInterpretation.absoluteTime);
