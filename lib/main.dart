@@ -16,12 +16,15 @@ import 'package:todoapp/pages/login.dart';
 import 'package:todoapp/pages/logout.dart';
 import 'package:todoapp/model/database.dart';
 import 'package:todoapp/model/item.dart';
+import 'package:todoapp/util/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await NotificationService().init();
+  await NotificationService().requestIOSPermissions();
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -89,8 +92,7 @@ class MyAppState extends ChangeNotifier {
   List<TodoItem> items = [];
   late TodoItem myItem;
 
-  initData() {
-    refreshItems();
+  initData() async {
     TodoDatabase(uid).itemsRef.onValue.listen((_) {
       setAppLoadingState(true);
       refreshItems();
@@ -98,9 +100,10 @@ class MyAppState extends ChangeNotifier {
     isDataInitiated = true;
   }
 
-  void refreshItems() async {
+  Future<void> refreshItems() async {
     items = await TodoDatabase(uid).getAllItems();
     items.sort((a, b) => a.created.compareTo(b.created));
+    await setReminders(items, formatDate);
     setAppLoadingState(false);
   }
 
@@ -108,19 +111,22 @@ class MyAppState extends ChangeNotifier {
     setAppLoadingState(true);
     String location = isShared ? "sharedItems" : uid;
     TodoDatabase(location).createItem(myItem);
-    refreshItems();
   }
 
-  void setItemDone(TodoItem item) {
+  void setItemDone(TodoItem item, bool done) async {
     setAppLoadingState(true);
-    TodoDatabase(uid).setItemDone(item);
-    refreshItems();
+    if (done) {
+      final NotificationService notificationService = NotificationService();
+      await notificationService.clearScheduledNotificationForItem(item.id);
+    }
+    TodoDatabase(uid).toggleItemDone(item, done);
   }
 
-  void deleteItem(TodoItem item) {
+  void deleteItem(TodoItem item) async {
     setAppLoadingState(true);
+    final NotificationService notificationService = NotificationService();
+    await notificationService.clearScheduledNotificationForItem(item.id);
     TodoDatabase(uid).deleteItem(item);
-    refreshItems();
   }
 
   void setAppLoadingState(bool isLoading) {
@@ -128,11 +134,16 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  String formatDate(DateTime date, String locale, bool doLongFormat) {
+  String formatDate(
+      DateTime date, String locale, bool doLongFormat, bool includeTime) {
     initializeDateFormatting(locale, null);
     String formattedDate = doLongFormat
-        ? DateFormat.yMMMMd(locale).format(date)
-        : DateFormat.yMd(locale).format(date);
+        ? includeTime
+            ? DateFormat.yMMMMd(locale).add_Hm().format(date)
+            : DateFormat.yMMMMd(locale).format(date)
+        : includeTime
+            ? DateFormat.yMd(locale).add_Hm().format(date)
+            : DateFormat.yMd(locale).format(date);
     return formattedDate;
   }
 }
@@ -236,5 +247,53 @@ class _MainPageState extends State<MainPage> {
         ],
       );
     });
+  }
+}
+
+Future<void> setReminders(List<TodoItem> items, Function formatDate) async {
+  for (var item in items) {
+    if (item.expires != null && !item.done) {
+      final DateTime now = DateTime.now();
+      final NotificationService notificationService = NotificationService();
+      if (now.isBefore(item.expires!)) {
+        Duration offset = const Duration(minutes: 5);
+        final Duration diff = item.expires!.difference(now);
+        if (diff.inDays >= 365) {
+          offset = const Duration(days: 183);
+        } else if (diff.inDays >= 183) {
+          offset = const Duration(days: 92);
+        } else if (diff.inDays >= 92) {
+          offset = const Duration(days: 30);
+        } else if (diff.inDays >= 30) {
+          offset = const Duration(days: 14);
+        } else if (diff.inDays >= 14) {
+          offset = const Duration(days: 7);
+        } else if (diff.inDays >= 7) {
+          offset = const Duration(days: 1);
+        } else if (diff.inDays >= 1) {
+          offset = const Duration(hours: 12);
+        } else if (diff.inHours >= 12) {
+          offset = const Duration(hours: 6);
+        } else if (diff.inHours >= 6) {
+          offset = const Duration(hours: 4);
+        } else if (diff.inHours >= 4) {
+          offset = const Duration(hours: 2);
+        } else if (diff.inHours >= 2) {
+          offset = const Duration(hours: 1);
+        } else if (diff.inHours >= 1) {
+          offset = const Duration(minutes: 30);
+        } else if (diff.inMinutes >= 30) {
+          offset = const Duration(minutes: 15);
+        }
+
+        DateTime schedule = item.expires!.subtract(offset);
+        await notificationService.scheduleNotifications(
+            id: item.id,
+            body:
+                "This item expires on ${formatDate(item.expires!, 'en_GB', true, true)}.",
+            title: "TodoApp reminder: ${item.title}",
+            time: schedule);
+      }
+    }
   }
 }

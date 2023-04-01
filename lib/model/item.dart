@@ -33,7 +33,7 @@ class TodoItem {
     item.done = done;
 
     if (expires != null && expires.isNotEmpty) {
-      item.expires = DateFormat.yMMMd().parse(expires);
+      item.expires = DateFormat.yMMMd().add_Hm().parse(expires);
     }
     return item;
   }

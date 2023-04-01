@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_cupertino_datetime_picker/flutter_cupertino_datetime_picker.dart';
 
 import 'package:todoapp/main.dart';
-import 'package:todoapp/widgets/selectdate.dart';
 import 'package:todoapp/model/item.dart';
 
 class NewItemPage extends StatefulWidget {
@@ -19,7 +19,7 @@ class NewItemPage extends StatefulWidget {
 class _NewItemPageState extends State<NewItemPage> {
   final _formKey = GlobalKey<FormState>();
 
-  final DateTime _selectedDate = DateTime.now();
+  DateTime? _selectedDate;
 
   final TextEditingController _textEditingController = TextEditingController();
 
@@ -73,12 +73,22 @@ class _NewItemPageState extends State<NewItemPage> {
               Padding(
                 padding: const EdgeInsets.all(6.0),
                 child: TextFormField(
-                    keyboardType: TextInputType.datetime,
+                    keyboardType: TextInputType.none,
+                    readOnly: true,
                     controller: _textEditingController,
-                    //enabled: false,
-                    onTap: () {
-                      selectDate(
-                          context, _selectedDate, _textEditingController);
+                    onTap: () async {
+                      _selectedDate =
+                          await _showDatePickerDialog(context, _selectedDate);
+                      _textEditingController
+                        ..text = _selectedDate != null
+                            ? DateFormat.yMMMd().add_Hm().format(_selectedDate!)
+                            : ""
+                        ..selection = TextSelection.fromPosition(
+                          TextPosition(
+                            offset: _textEditingController.text.length,
+                            affinity: TextAffinity.upstream,
+                          ),
+                        );
                     },
                     decoration: const InputDecoration(
                         labelText: 'Expires',
@@ -88,7 +98,7 @@ class _NewItemPageState extends State<NewItemPage> {
                       if (value != null && value.isNotEmpty) {
                         try {
                           appState.myItem.expires =
-                              DateFormat.yMMMd().parse(value);
+                              DateFormat.yMMMd().add_Hm().parse(value);
                         } on FormatException {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(const SnackBar(
@@ -169,4 +179,57 @@ class _NewItemPageState extends State<NewItemPage> {
       ),
     );
   }
+}
+
+Future<DateTime?> _showDatePickerDialog(
+    BuildContext context, DateTime? initDT) async {
+  var theme = Theme.of(context);
+  String minDate = DateTime.now().toIso8601String();
+  String maxDate =
+      DateTime.now().add(const Duration(days: 3650)).toIso8601String();
+  String initDate = initDT != null ? initDT.toIso8601String() : minDate;
+  const String dateFormat = "yyyy-MM-dd,HH:mm";
+  DateTime selectedDate = DateTime.parse(minDate);
+  return showDialog<DateTime?>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Pick date and time'),
+        backgroundColor: theme.colorScheme.background,
+        content: SingleChildScrollView(
+          child: DateTimePickerWidget(
+            minDateTime: DateTime.parse(minDate),
+            maxDateTime: DateTime.parse(maxDate),
+            initDateTime: DateTime.parse(initDate),
+            dateFormat: dateFormat,
+            onMonthChangeStartWithFirstDate: true,
+            pickerTheme: DateTimePickerTheme(
+              showTitle: false,
+              itemTextStyle: theme.textTheme.bodySmall!,
+              backgroundColor: const Color.fromARGB(0, 0, 0, 0),
+              itemHeight: 40,
+            ),
+            onChange: (dateTime, selectedIndex) {
+              selectedDate = dateTime;
+            },
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('set'),
+            onPressed: () {
+              Navigator.of(context).pop(selectedDate);
+            },
+          ),
+          TextButton(
+            child: Text(initDT == null ? 'cancel' : 'clear'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
 }

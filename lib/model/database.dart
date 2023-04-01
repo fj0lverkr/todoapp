@@ -11,8 +11,9 @@ class TodoDatabase {
   DatabaseReference itemsRef = FirebaseDatabase.instance.ref("items");
 
   void createItem(TodoItem item) async {
-    String expires =
-        item.expires != null ? DateFormat.yMMMd().format(item.expires!) : '';
+    String expires = item.expires != null
+        ? DateFormat.yMMMd().add_Hm().format(item.expires!)
+        : '';
     DatabaseReference ref = _todoDatabase.ref("items/$_uid/${item.id}");
     await ref.set({
       "id": item.id,
@@ -56,10 +57,10 @@ class TodoDatabase {
     return items;
   }
 
-  void setItemDone(TodoItem item) {
+  void toggleItemDone(TodoItem item, bool done) {
     String owner = item.isShared ? "sharedItems" : _uid;
     final DatabaseReference ref = _todoDatabase.ref("items/$owner/${item.id}");
-    ref.update({"done": true});
+    ref.update({"done": done});
   }
 
   void deleteItem(TodoItem item) {

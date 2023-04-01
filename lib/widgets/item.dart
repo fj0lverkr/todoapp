@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import 'package:todoapp/main.dart';
 import 'package:todoapp/model/item.dart';
-import 'package:todoapp/model/database.dart';
 
 class ItemWidget extends StatelessWidget {
   const ItemWidget({
@@ -34,17 +33,15 @@ class ItemWidget extends StatelessWidget {
     );
     bool itemExpired = (!item.done &&
         item.expires != null &&
-        item.expires!.compareTo(DateTime.now()) < 0);
+        item.expires!.compareTo(DateTime.now()) <= 0);
     bool itemShared = item.isShared;
     return Dismissible(
       key: Key(item.id),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.endToStart) {
           appState.deleteItem(item);
-          appState.refreshItems();
         } else {
-          TodoDatabase(uid).setItemDone(item);
-          appState.refreshItems();
+          appState.setItemDone(item, item.done ? false : true);
         }
         return false;
       },
@@ -85,7 +82,7 @@ class ItemWidget extends StatelessWidget {
                     : const Icon(Icons.circle_outlined),
             title: Text(
                 item.expires != null
-                    ? "${item.title} (${appState.formatDate(item.expires!, 'en_GB', false)})"
+                    ? "${item.title} (${appState.formatDate(item.expires!, 'en_GB', false, true)})"
                     : item.title,
                 style: item.done ? itemTitleDoneStyle : itemTitleStyle),
             subtitle: (item.description != null && item.description != "")
@@ -134,7 +131,7 @@ Widget _buildPopupDialog(
         const SizedBox(height: 25),
         Text(
           item.expires != null
-              ? 'Expires: ${appState.formatDate(item.expires!, 'en_GB', true)}'
+              ? 'Expires: ${appState.formatDate(item.expires!, 'en_GB', true, true)}'
               : 'Does not expire.',
           style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
         ),
@@ -145,7 +142,7 @@ Widget _buildPopupDialog(
         IconButton(
           onPressed: () {
             Navigator.of(context).pop();
-            appState.setItemDone(item);
+            appState.setItemDone(item, item.done ? false : true);
           },
           icon: const Icon(Icons.done),
         ),
