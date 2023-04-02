@@ -17,15 +17,10 @@ import 'package:todoapp/pages/logout.dart';
 import 'package:todoapp/model/database.dart';
 import 'package:todoapp/model/item.dart';
 import 'package:todoapp/util/notification_service.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Permission.notification.isDenied.then((value) {
-    if (value) {
-      Permission.notification.request();
-    }
-  });
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

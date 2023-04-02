@@ -1,7 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.nilsnahooy.todoapp">
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
    <application
         android:label="todoapp"
         android:name="${applicationName}"
