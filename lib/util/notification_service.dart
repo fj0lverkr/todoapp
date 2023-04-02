@@ -5,6 +5,8 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'constants.dart' as c;
+import 'package:todoapp/model/item.dart';
+import 'package:todoapp/model/database.dart' as db;
 
 class NotificationService {
   //instance of FlutterLocalNotificationsPlugin
@@ -26,11 +28,22 @@ class NotificationService {
 
     tz.initializeTimeZones();
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: notificationTapBackground,
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+    );
   }
 
-  Future<dynamic> onSelectNotification(String? payload) async {
-    //Navigate to wherever you want
+  @pragma('vm:entry-point')
+  void notificationTapBackground(NotificationResponse notificationResponse) {
+    if (notificationResponse.payload != null) {
+      if (notificationResponse.actionId == "set_done") {
+        List<String> payloads = notificationResponse.payload!.split("|");
+        TodoItem item = TodoItem.fromJson(payloads[0]);
+        db.TodoDatabase(payloads[1]).toggleItemDone(item, true);
+      }
+    }
   }
 
   requestIOSPermissions() {
@@ -44,20 +57,8 @@ class NotificationService {
         );
   }
 
-  Future<void> showNotifications({id, title, body, payload}) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-            c.NOTIFICATION_CHANNEL_ID, c.NOTIFICATION_CHANNEL_NAME,
-            importance: Importance.max,
-            priority: Priority.high,
-            ticker: 'ticker');
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin
-        .show(id, title, body, platformChannelSpecifics, payload: payload);
-  }
-
-  Future<void> scheduleNotifications({id, title, body, time}) async {
+  Future<void> scheduleNotifications(TodoItem item, String uid,
+      {id, title, body, time}) async {
     try {
       bool skip = false;
       int idAsInt = getNotificationIdForItem(id);
@@ -79,11 +80,26 @@ class NotificationService {
             body,
             tz.TZDateTime.from(time, tz.local),
             const NotificationDetails(
-                android: AndroidNotificationDetails(
-                    c.NOTIFICATION_CHANNEL_ID, c.NOTIFICATION_CHANNEL_NAME)),
+              android: AndroidNotificationDetails(
+                c.NOTIFICATION_CHANNEL_ID,
+                c.NOTIFICATION_CHANNEL_NAME,
+                importance: Importance.max,
+                priority: Priority.high,
+                ticker: 'ticker',
+                visibility: NotificationVisibility.public,
+                enableLights: true,
+                actions: <AndroidNotificationAction>[
+                  AndroidNotificationAction(
+                    'mark_done',
+                    'Mark done',
+                  ),
+                ],
+              ),
+            ),
             androidAllowWhileIdle: true,
             uiLocalNotificationDateInterpretation:
-                UILocalNotificationDateInterpretation.absoluteTime);
+                UILocalNotificationDateInterpretation.absoluteTime,
+            payload: "$jsonEncode(item)|$uid");
       }
     } catch (e) {
       print(e);

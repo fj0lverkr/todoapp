@@ -104,7 +104,7 @@ class MyAppState extends ChangeNotifier {
   Future<void> refreshItems() async {
     items = await TodoDatabase(uid).getAllItems();
     items.sort((a, b) => a.created.compareTo(b.created));
-    await setReminders(items, formatDate);
+    await setReminders(items, uid, formatDate);
     setAppLoadingState(false);
   }
 
@@ -251,7 +251,8 @@ class _MainPageState extends State<MainPage> {
   }
 }
 
-Future<void> setReminders(List<TodoItem> items, Function formatDate) async {
+Future<void> setReminders(
+    List<TodoItem> items, uid, Function formatDate) async {
   for (var item in items) {
     if (item.expires != null && !item.done) {
       final DateTime now = DateTime.now();
@@ -287,8 +288,9 @@ Future<void> setReminders(List<TodoItem> items, Function formatDate) async {
           offset = const Duration(minutes: 15);
         }
 
-        DateTime schedule = item.expires!.subtract(offset);
-        await notificationService.scheduleNotifications(
+        //DateTime schedule = item.expires!.subtract(offset);
+        DateTime schedule = now.add(const Duration(seconds: 1));
+        await notificationService.scheduleNotifications(item, uid,
             id: item.id,
             body:
                 "This item expires on ${formatDate(item.expires!, 'en_GB', true, true)}.",
