@@ -22,11 +22,11 @@ A small, online only (powered by Firebase) Todo app written in dart/flutter.
 }
 ```
 - This ensures only authenticated users can read and write from/to items and from/to sharedItems, while only the corresponding user can read/write from/to their private items.
-- In the Firebase console, under *Authentication*  *Sign-in method*, set up the *Email/password* provider.
+- In the Firebase console, under *Authentication* → *Sign-in method*, set up the *Email/password* provider.
 
 In the future we will improve authentication:
-- stay logged in over different app launches
-- implement a logout flow
+- ~~stay logged in over different app launches~~
+- ~~implement a logout flow~~
 - Possibly use Google Auth
 
 As of writing this, only the following platforms are supported by Firebase:
